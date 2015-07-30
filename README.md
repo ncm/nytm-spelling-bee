@@ -16,6 +16,17 @@ that that it finds have between 25 and 33 points possible, given
 the words in its list.  Typically one should be satisfied with 20
 points.
 
+Output is a list of seven-letter sets, like
+
+  $ ./puzzlegen
+  ...
+  imOprSy
+  imOprtu
+  Imopstu
+  ImoPstv
+
+Capital letters in output are candidates for the central letter.
+
 solve.sh is a simpler program that, given such a puzzle, lists
 words found in /usr/share/dict/words that solve the puzzle. An
 excerpt from its output for the puzzle above is,
