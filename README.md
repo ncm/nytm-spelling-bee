@@ -1,4 +1,4 @@
-puzzlegen.cc is a simple program in C++14 that generates anagram
+```puzzlegen.cc``` is a simple program in C++14 that generates anagram
 puzzles as found in the New York Times Magazine, that they call
 "Spelling Bee".  These puzzles present a circle of six letters
 around a seventh, central letter, like
@@ -27,7 +27,7 @@ Output is a list of seven-letter sets, like
 ```
 Capital letters in output are candidates for the central letter.
 
-solve.sh is a simpler program that, given such a puzzle, lists
+```solve.sh``` is a simpler program that, given such a puzzle, lists
 words found in /usr/share/dict/words that solve the puzzle. An
 excerpt from its output for the puzzle above is,
 ```
@@ -41,20 +41,20 @@ excerpt from its output for the puzzle above is,
 with three-point words suffixed " *".  (The central letter comes first
 in the command-line argument.)
 
-# Internals
+### Internals
 
-puzzlegen.cc is probably more interesting as an example of optimized
+```puzzlegen.cc``` is probably more interesting as an example of optimized
 modern C++ coding than as a generator of puzzles.  It uses bits in
 a 32-bit word to represent sets of letters, bitwise arithmetic to
 step through the set and qualify words, lambda functions (one with
 an auto argument, equivalent to a template) to compose operations,
 STL algorithms, new-style for-loops over containers, and a compiler
-intrinsic "__builtin_popcount" to generate a single-instruction count
+intrinsic ```__builtin_popcount``` to generate a single-instruction count
 of nonzero bits in a machine word.
 
 As important is what it doesn't use.  It doesn't store the actual
-words it reads, as they are not useful.  It uses <set>, not
-<unordered_set>, because set is only 10% slower but produces more-
-pleasingly ordered output.  It makes only one pass through all the
-candidate words for each candidate letter-set.  It discards words
+words it reads, as they are not useful.  It uses ```<set>```, not
+```<unordered_set>```, because set is only 10% slower but produces
+more-pleasingly ordered output.  It makes only one pass through all
+the candidate words for each candidate letter-set.  It discards words
 on input that cannot be solutions.
