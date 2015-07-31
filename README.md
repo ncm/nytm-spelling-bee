@@ -47,7 +47,7 @@ in the command-line argument.)
 modern C++ coding than as a generator of puzzles.  It uses bits in
 a 32-bit word to represent sets of letters, bitwise arithmetic to
 step through the set and qualify words, lambda functions (one with
-an ```auto argument```, equivalent to a template) to compose operations,
+an ```auto``` argument, equivalent to a template) to compose operations,
 STL algorithms, new-style for-loops over containers, and a compiler
 intrinsic ```__builtin_popcount``` to generate a single-instruction count
 of nonzero bits in a machine word.
