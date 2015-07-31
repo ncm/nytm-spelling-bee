@@ -1,5 +1,5 @@
-RTLIBPATH = LD_LIBRARY_PATH=/home/ncm/gcc-5/lib64 
-CXX = /home/ncm/gcc-5/bin/g++
+RTLIBPATH = 
+CXX = g++
 CXXFLAGS = -O3 -Wall -g3
 
 run: puzzlegen
