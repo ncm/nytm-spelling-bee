@@ -47,7 +47,7 @@ in the command-line argument.)
 modern C++ coding than as a generator of puzzles.  It uses bits in
 a 32-bit word to represent sets of letters, bitwise arithmetic to
 step through the set and qualify words, lambda functions (one with
-an auto argument, equivalent to a template) to compose operations,
+an ```auto``` argument, equivalent to a template) to compose operations,
 STL algorithms, new-style for-loops over containers, and a compiler
 intrinsic ```__builtin_popcount``` to generate a single-instruction count
 of nonzero bits in a machine word.
@@ -58,3 +58,7 @@ words it reads, as they are not useful.  It uses ```<set>```, not
 more-pleasingly ordered output.  It makes only one pass through all
 the candidate words for each candidate letter-set.  It discards words
 on input that cannot be solutions.
+
+It does depend on a runtime character set with contiguous alpha characters,
+a compiler with the aforementioned ```__builtin_popcount``` extension, and
+a ```/usr/share/dict/words``` file in the right place.
