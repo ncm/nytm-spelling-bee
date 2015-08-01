@@ -37,9 +37,9 @@ int main(int ac, char** av)
 
     for (Letters seven : sevens) {
         auto for_letters = [&seven](auto op) {
-            int pos = 0;
-            for (Letters rest = seven; rest != 0; ++pos, rest &= ~-rest)
-                op(rest & -rest, 6 - pos);
+            int pos = 6;
+            for (Letters rest = seven; rest != 0; --pos, rest &= ~-rest)
+                op(rest & -rest, pos);
         };
         int points[7] = { 0, };
         for (Letters word : words)
