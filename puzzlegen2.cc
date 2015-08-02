@@ -1,39 +1,46 @@
 #include <fstream>
 #include <iterator>
-#include <string>
 #include <vector>
 #include <set>
 #include <algorithm>
 #include <iostream>
 #include <streambuf>
+#include <fstream>
 
 using Letters = int;
 
 int main(int ac, char** av)
 {
-    std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];
-    std::ifstream fs;
-    std::istream& in = (name != "-") ? (fs.open(name), fs) : std::cin;
-    if (!in) {
-        std::cerr << "file open failed, " << name << '\n';
-        return 1;
+    char const* name = (ac == 1) ? "/usr/share/dict/words" : av[1];
+    std::filebuf fs;
+    if (!(ac > 1 && av[1][0] == '-' && av[1][1] == '\0')) {
+        if (!fs.open(name, std::ios_base::in)) {
+            std::cerr << "file open failed, " << name << '\n';
+            return 1;
+        }
     }
-
+    std::istreambuf_iterator<char> end,
+        in = fs.is_open() ? &fs : std::cin.rdbuf();
     std::vector<Letters> words;
     std::set<Letters, std::greater<Letters>> sevens;
-    std::istream_iterator<std::string> it(in), end;
 
-    std::for_each(it, end, [&](auto&& word) {
-        if (word.size() >= 5) {
-            Letters letters = std::accumulate(word.begin(), word.end(), 0,
-                [](Letters a, char b) {
-                    return (b < 'a' || b > 'z') ? -1 : a | (1 << ('z' - b));
-                });
-            if (letters > 0) {
-                words.push_back(letters);
-                if (__builtin_popcountl(letters) == 7)
-                    sevens.insert(letters);
-            }}});
+    Letters word = 0;
+    int length = 0;
+    std::for_each(in, end, [&](int c) {
+        if (c == '\n') {
+            if (length >= 5) {
+                words.push_back(word);
+                if (__builtin_popcountl(word) == 7)
+                    sevens.insert(word);
+            }
+            word = length = 0;
+        } else if (length < 0) {
+        } else if (c >= 'a' && c <= 'z') {
+            ++length;
+            word |= (1 << ('z' - c));
+        } else 
+            length = -1;
+    });
 
     char buf[] = "aaaaaaa\n";
     for (Letters seven : sevens) {
