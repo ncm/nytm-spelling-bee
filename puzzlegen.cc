@@ -5,6 +5,7 @@
 #include <set>
 #include <algorithm>
 #include <iostream>
+#include <streambuf>
 
 using Letters = int;
 
@@ -50,7 +51,7 @@ int main(int ac, char** av)
                 });
         bool any = false, mid;
         for_each_letter([&](Letters letter, int pos) {
-            any |= mid = (points[pos] > 20 && points[pos] < 33);
+            any |= mid = (points[6 - pos] > 20 && points[6 - pos] < 33);
             buf[6 - pos] = (mid? 'Z' : 'z') - __builtin_popcountl(letter - 1);
         });
         if (any)
