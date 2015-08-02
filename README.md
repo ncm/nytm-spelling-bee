@@ -52,12 +52,12 @@ STL algorithms, new-style for-loops over containers, and a compiler
 intrinsic ```__builtin_popcount``` to generate a single-instruction count
 of nonzero bits in a machine word.
 
-As important is what it doesn't use.  It doesn't store the actual
-words it reads, as they are not useful.  It uses ```<set>```, not
-```<unordered_set>```, because set is only 10% slower but produces
-more-pleasingly ordered output.  It makes only one pass through all
-the candidate words for each candidate letter-set.  It discards words
-on input that cannot be solutions.
+As important is what it doesn't use.  It doesn't store the actual words it
+reads, as they are not useful.  It uses ```<set>```, not ```<unordered_set>```,
+because (a) with ```set``` it is *exactly* as fast, but (b) produces more-
+pleasingly ordered output.  It makes only one pass through all the candidate
+words for each candidate letter-set.  It discards words on input that cannot
+be solutions.
 
 It does depend on a runtime character set with contiguous alpha characters,
 a compiler with the aforementioned ```__builtin_popcount``` extension, and
