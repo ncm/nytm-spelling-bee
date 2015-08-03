@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <streambuf>
+#include <numeric>
 
 using Letters = int;
 
@@ -21,8 +22,8 @@ int main(int ac, char** av)
 
     std::vector<Letters> words;
     std::set<Letters, std::greater<Letters>> sevens;
-    std::istream_iterator<std::string> it(in), end;
 
+    std::istream_iterator<std::string> it(in), end;
     std::for_each(it, end, [&](auto&& word) {
         if (word.size() >= 5) {
             Letters letters = std::accumulate(word.begin(), word.end(), 0,
@@ -53,7 +54,7 @@ int main(int ac, char** av)
         bool any = false, mid;
         for_each_in_seven([&](Letters letter, int pos) {
             any |= mid = (score[pos] > 20 && score[pos] < 33);
-            buf[pos] = (mid? 'Z' : 'z') - __builtin_popcountl(letter - 1);
+            buf[pos] = (mid ? 'Z' : 'z') - __builtin_popcountl(letter - 1);
         });
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
