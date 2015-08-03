@@ -29,9 +29,10 @@ int main(int ac, char** av)
                 [](Letters a, char b) {
                     return (b < 'a' || b > 'z') ? -1 : a | (1 << ('z' - b));
                 });
-            if (letters > 0) {
+            int count = __builtin_popcountl(letters);
+            if (count <= 7) {
                 words.push_back(letters);
-                if (__builtin_popcountl(letters) == 7)
+                if (count == 7)
                     sevens.insert(letters);
             }}});
 
