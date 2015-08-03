@@ -38,22 +38,21 @@ int main(int ac, char** av)
 
     char buf[] = "aaaaaaa\n";
     for (Letters seven : sevens) {
-        auto for_each_letter = [&seven](auto op) {
+        auto for_each_in_seven = [seven](auto op) {
             int pos = 0;
             for (Letters rest = seven; rest != 0; ++pos, rest &= ~-rest)
-                op(rest & -rest, pos);
+                op(rest & -rest, 6 - pos);
         };
-        int points[7] = { 0, };
+        int score[7] = { 0, };
         for (Letters word : words)
             if ((word & ~seven) == 0)
-                for_each_letter([&](Letters letter, int rvpos) {
+                for_each_in_seven([&](Letters letter, int pos) {
                     if (word & letter)
-                        points[6 - rvpos] += (word == seven) ? 3 : 1;
+                        score[pos] += (word == seven) ? 3 : 1;
                 });
         bool any = false, mid;
-        for_each_letter([&](Letters letter, int rvpos) {
-            int pos = 6 - rvpos;
-            any |= mid = (points[pos] > 20 && points[pos] < 33);
+        for_each_in_seven([&](Letters letter, int pos) {
+            any |= mid = (score[pos] > 20 && score[pos] < 33);
             buf[pos] = (mid? 'Z' : 'z') - __builtin_popcountl(letter - 1);
         });
         if (any)
