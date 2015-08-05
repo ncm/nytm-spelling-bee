@@ -57,10 +57,10 @@ int main(int ac, char** av)
                 });
         bool any = false, mid;
         for_each_in_seven([&](Letters letter, int place) {
-            auto position_of_bit = [letter]() {
+            auto position_of_bit = [](Letters letter) {
                     return Letters{letter.to_ulong() - 1}.count(); };
             any |= mid = (score[place] > 20 && score[place] < 33);
-            buf[place] = (mid ? 'Z' : 'z') - position_of_bit();
+            buf[place] = (mid ? 'Z' : 'z') - position_of_bit(letter);
         });
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
