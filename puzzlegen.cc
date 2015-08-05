@@ -1,11 +1,10 @@
 #include <fstream>
+#include <iostream>
+#include <streambuf>
 #include <iterator>
 #include <string>
 #include <vector>
 #include <set>
-#include <algorithm>
-#include <iostream>
-#include <streambuf>
 #include <numeric>
 #include <functional>
 #include <bitset>
@@ -17,10 +16,8 @@ int main(int ac, char** av)
     std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];
     std::ifstream fs;
     std::istream& in = (name != "-") ? (fs.open(name), fs) : std::cin;
-    if (!in) {
-        std::cerr << "file open failed, " << name << '\n';
-        return 1;
-    }
+    if (!in)
+        return std::cerr << "file open failed, " << name << '\n', 1;
 
     std::vector<Letters> words;
     std::set<unsigned long, std::greater<>> sevens;
