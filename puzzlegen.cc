@@ -7,8 +7,10 @@
 #include <iostream>
 #include <streambuf>
 #include <numeric>
+#include <functional>
+#include <bitset>
 
-using Letters = int;
+using Letters = std::bitset<'z' - 'a' + 1>;
 
 int main(int ac, char** av)
 {
@@ -21,40 +23,44 @@ int main(int ac, char** av)
     }
 
     std::vector<Letters> words;
-    std::set<Letters, std::greater<Letters>> sevens;
+    std::set<unsigned long, std::greater<>> sevens;
 
-    std::istream_iterator<std::string> it(in), end;
-    std::for_each(it, end, [&](auto&& word) {
-        if (word.size() >= 5) {
-            Letters letters = std::accumulate(word.begin(), word.end(), 0,
+    for (std::istream_iterator<std::string> it(in), end; it != end; ++it) {
+        if (it->size() >= 5) {
+            Letters word = std::accumulate(it->begin(), it->end(), Letters{},
                 [](Letters a, char b) {
-                    return (b < 'a' || b > 'z') ? -1 : a | (1 << ('z' - b));
+                    return (b < 'a' || b > 'z') ? a.set() : a.set('z' - b);
                 });
-            int count = __builtin_popcountl(letters);
-            if (count <= 7) {
-                words.push_back(letters);
-                if (count == 7)
-                    sevens.insert(letters);
-            }}});
+            if (word.count() <= 7)
+                words.push_back(word);
+            if (word.count() == 7)
+                sevens.insert(word.to_ulong());
+        }
+    }
 
-    char buf[] = "aaaaaaa\n";
+    char buf[8]; buf[7] = '\n';
     for (Letters seven : sevens) {
-        auto for_each_in_seven = [seven](auto op) {
-            int pos = 0;
-            for (Letters rest = seven; rest != 0; ++pos, rest &= ~-rest)
-                op(rest & -rest, 6 - pos);
+        auto for_each_in_seven = [seven](auto bin_op) {
+            auto least_bit = [](Letters letters) {
+                    return letters & Letters{-letters.to_ulong()}; };
+            int place = 0;
+            Letters rest = seven;
+            do  bin_op(least_bit(rest), 6 - place);
+            while (++place, rest &= ~least_bit(rest), rest.any());
         };
         int score[7] = { 0, };
         for (Letters word : words)
-            if ((word & ~seven) == 0)
-                for_each_in_seven([&](Letters letter, int pos) {
-                    if (word & letter)
-                        score[pos] += (word == seven) ? 3 : 1;
+            if ((word & ~seven).none())
+                for_each_in_seven([&](Letters letter, int place) {
+                    if ((word & letter).any())
+                        score[place] += (word == seven) ? 3 : 1;
                 });
         bool any = false, mid;
-        for_each_in_seven([&](Letters letter, int pos) {
-            any |= mid = (score[pos] > 20 && score[pos] < 33);
-            buf[pos] = (mid ? 'Z' : 'z') - __builtin_popcountl(letter - 1);
+        for_each_in_seven([&](Letters letter, int place) {
+            auto position_of_bit = [letter]() {
+                    return Letters{letter.to_ulong() - 1}.count(); };
+            any |= mid = (score[place] > 20 && score[place] < 33);
+            buf[place] = (mid ? 'Z' : 'z') - position_of_bit();
         });
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
