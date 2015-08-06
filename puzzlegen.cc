@@ -25,7 +25,7 @@ int main(int ac, char** av)
     for (std::istream_iterator<std::string> it(in), end; it != end; ++it) {
         if (it->size() >= 5) {
             Letters word = std::accumulate(it->begin(), it->end(), Letters{},
-                [](Letters a, char b) {
+                [](Letters a, char b) -> Letters {
                     return (b < 'a' || b > 'z') ? a.set() : a.set('z' - b);
                 });
             if (word.count() <= 7)
