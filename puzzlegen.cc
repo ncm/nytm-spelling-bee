@@ -53,7 +53,7 @@ int main(int ac, char** av)
         for_each_in_seven([&](Letters letter, int place) {
             auto bit_position = [](Letters letter) {
                 return Letters{letter.to_ulong() - 1}.count(); };
-            bool middle = (score[place] > 20 && score[place] < 33);
+            bool middle = (score[place] > 25 && score[place] < 33);
             buf[place] = (middle ? 'Z' : 'z') - bit_position(letter);
             any |= middle;
         });
