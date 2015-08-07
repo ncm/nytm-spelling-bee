@@ -48,12 +48,13 @@ int main(int ac, char** av)
                     if ((word & letter).any())
                         score[place] += (word == seven) ? 3 : 1;
                 });
-        bool any = false, mid;
+        bool any = false;
         for_each_in_seven([&](Letters letter, int place) {
             auto bit_position = [](Letters letter) {
                 return Letters{letter.to_ulong() - 1}.count(); };
-            any |= mid = (score[place] > 20 && score[place] < 33);
-            buf[place] = (mid ? 'Z' : 'z') - bit_position(letter);
+            bool middle = (score[place] > 20 && score[place] < 33);
+            buf[place] = (middle ? 'Z' : 'z') - bit_position(letter);
+            any |= middle;
         });
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
