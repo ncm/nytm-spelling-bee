@@ -43,18 +43,21 @@ in the command-line argument.)
 
 ### Internals
 
-```puzzlegen.cc``` is probably more interesting as an example of optimized
-modern C++ coding than as a generator of puzzles.  It uses bits in
-a 32-bit word, via bitset<>, to represent sets of letters, bitwise arithmetic to
-step through the set and qualify words, lambda functions (one with
-an ```auto``` argument, equivalent to a template) to compose operations,
-STL algorithms, and new-style for-loops over containers.
+```puzzlegen.cc``` may be more interesting as an example of optimized modern
+C++ coding than as a generator of puzzles.  It uses bits in a 32-bit word,
+via bitset<>, to represent sets of letters, bitwise arithmetic to step
+through the set and qualify words, and new-style for-loops over containers.
+It uses an STL-style container adapter over std::bitset<> to provide a
+conforming iterator usable with the new-style for-loop.
 
 As important is what it doesn't use.  It doesn't store the actual words it
 reads, as they are not useful.  It uses ```<set>```, not ```<unordered_set>```,
 because (a) with ```set``` it is *exactly* as fast, but (b) produces more-
 pleasingly ordered output.  It makes only one pass through all the candidate
 words for each candidate letter-set.  It discards words on input that cannot
-be solutions.
+be solutions.  Early versions used lambda functions that ended up being
+better-placed in the container adapter.
 
-It does depend on a runtime character set with contiguous alpha characters, and, by default, a ```/usr/share/dict/words``` file in the right place.
+It does depend on a runtime character set with contiguous alphabetic
+characters, and, by default, a ```/usr/share/dict/words``` file in the right
+place.

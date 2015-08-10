@@ -7,6 +7,6 @@ run: puzzlegen
 	$(RTLIBPATH) time ./puzzlegen | tee out | wc -l
 	cmp out.ref out
 
-puzzlegen: puzzlegen.cc
+puzzlegen: puzzlegen.cc bitset_set.h
 	$(CXX) $(CXXFLAGS) -std=c++14 $< -o $@
 
