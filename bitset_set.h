@@ -13,7 +13,7 @@ struct bitset_set : public std::bitset<N> {
     bitset_set(unsigned long bits) : Base{bits} {} 
     bitset_set(std::bitset<N> bits) : Base{bits} {} 
     struct iterator_type
-            : std::iterator<std::forward_iterator_tag,Base,int> {
+            : std::iterator<std::forward_iterator_tag,bitset_set,int> {
         Base rest;
         iterator_type() {}
         iterator_type(bitset_set bits) : rest{bits} {}
