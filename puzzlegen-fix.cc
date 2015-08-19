@@ -37,11 +37,14 @@ int main(int ac, char** av)
         int score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
-                int points = (word == seven) ? 3 : 1;
-                Letters rest = seven;
-                for (int place = 7; --place >= 0; rest &= ~-rest) {
-                    if (word & rest & -rest)
-                        score[place] += points;
+                if (word == seven)
+                    for (int place = 7; --place >= 0;)
+                        score[place] += 3;
+                else {
+                    Letters rest = seven;
+                    for (int place = 7; --place >= 0; rest &= ~-rest)
+                        if (word & rest & -rest)
+                            ++score[place];
                 }
             }
         bool any = false;
