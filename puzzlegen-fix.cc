@@ -32,35 +32,28 @@ int main(int ac, char** av)
         }
     }
 
-    int count = 0;
     char buf[8]; buf[7] = '\n';
     for (Letters seven : sevens) {
         int score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
+                int points = (word == seven) ? 3 : 1;
                 Letters rest = seven;
-                int place = 7;
-                do { 
-                    --place;
-                    if (word & rest & -rest) {
-                        score[place] += (word == seven) ? 3 : 1;
-                    }
-                    rest &= ~-rest;
-                } while (place);
+                for (int place = 7; --place >= 0; rest &= ~-rest) {
+                    if (word & rest & -rest)
+                        score[place] += points;
+                }
             }
         bool any = false;
         Letters rest = seven;
-        int place = 7;
-        do { 
-            --place;
+        for (int place = 7; --place >= 0; rest &= ~-rest) {
             bool middle = (score[place] > 25 && score[place] < 33);
             any |= middle;
             buf[place] = (middle ? 'Z' : 'z') - __builtin_ctzl(rest & -rest);
-        } while (place);
+        }
 
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
     }
-    std::cerr << count << '\n';
     return 0;
 }
