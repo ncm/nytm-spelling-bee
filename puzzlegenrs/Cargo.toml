@@ -1,0 +1,4 @@
+[package]
+name = "puzzlegenrs"
+version = "0.1.0"
+authors = ["Nathan Myers <nmyers12@bloomberg.net>"]
