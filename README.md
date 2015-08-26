@@ -12,7 +12,7 @@ set, and that all use the central letter.  Words that use all the
 letters score extra: one point for each lesser word, and three for
 each that uses all seven.  For example, for the letters above,
 "mitosis" scores 1, "optimums" 3.  The program only emits puzzles
-that that it finds have between 25 and 33 points possible, given
+that that it finds have between 26 and 32 points possible, given
 the words in its list.  Typically one should be satisfied to find
 20 points' worth.
 
@@ -61,3 +61,7 @@ better-placed in the container adapter.
 It does depend on a runtime character set with contiguous alphabetic
 characters, and, by default, a ```/usr/share/dict/words``` file in the right
 place.
+
+The Rust version of the program runs, on Intel Westmere, about 50% slower
+that the C++ version; on Haswell, 25% faster.  This reveals more about
+bugs in Haswell than about the speed of Rust code.

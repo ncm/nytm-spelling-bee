@@ -1,10 +1,10 @@
 use std::io::prelude::*;
 use std::fs;
+use std::env::args;
 use std::collections::BTreeSet;
 
 fn main() {
-    let name = std::env::args().nth(1).unwrap_or(
-                   String::from("/usr/share/dict/words"));
+    let name = args().nth(1).unwrap_or(String::from("/usr/share/dict/words"));
     let file : Box<std::io::Read> = match &name as &str {
         "-" => Box::new(std::io::stdin()),
          _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
@@ -30,8 +30,8 @@ fn main() {
                 };
             }
             match word.count_ones() {
-                7       => { sevens.insert(word); words.push(word)},
-                0 ... 6 => words.push(word),
+                7       => { sevens.insert(word); words.push(word); },
+                0 ... 6 => {                      words.push(word); },
                 _    => ()
             }
         }
@@ -42,12 +42,12 @@ fn main() {
         for word in words.iter() {
             if *word & !*seven == 0 {
                 let points = if *word == *seven { 3 } else { 1 } ;
-                let mut rest = *seven;
+                let mut rest : Letters = *seven;
                 for score in &mut scores {
-                     if (*word & rest & !(rest - 1)) != 0 {
-                          *score += points;
-                     }
-                     rest &= rest - 1;
+                    if (*word & rest & !(rest - 1)) != 0 {
+                         *score += points;
+                    }
+                    rest &= rest - 1;
                 }
             }
         }
