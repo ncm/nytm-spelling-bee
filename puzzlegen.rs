@@ -1,12 +1,14 @@
 use std::io::prelude::*;
+use std::fs;
 use std::collections::BTreeSet;
 
 fn main() {
-    let name = match std::env::args().nth(1) {
-         Some(n) => n,
-         _ => String::from("/usr/share/dict/words")
+    let name = std::env::args().nth(1).unwrap_or(
+                   String::from("/usr/share/dict/words"));
+    let file : Box<std::io::Read> = match &name as &str {
+        "-" => Box::new(std::io::stdin()),
+         _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
-    let file = std::fs::File::open(name).ok().expect("file open failed");
     let mut input = std::io::BufReader::new(file);
 
     type Letters = u32;
