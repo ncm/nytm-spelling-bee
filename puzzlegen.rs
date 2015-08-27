@@ -15,6 +15,24 @@ fn main() {
     let mut words : Vec<Letters> = Vec::new();
     let mut sevens : BTreeSet<Letters> = BTreeSet::new();
 
+    let mut word : Letters = 0;
+    let mut length : i32 = 0;
+    loop {
+        let mut buf = [0u8, 1];
+        match input.read(&mut buf) { Ok(1) => (), _ => break };
+        match (buf[0] as char, length) {
+            ('\n', -1 ... 5) => length = 0,
+            ('\n', _) => { words.push(word); length = 0;
+                 if word.count_ones() == 7 {
+                     sevens.insert(word); }
+                 word = 0; },
+            (_, -1) => (), 
+            ('a' ... 'z', _) => { length += 1;
+                 word |= 1u32 << (('z' as u8) - buf[0]) },
+            (_, _)   => { word = 0; length = 0; }
+        }
+    }
+
     let mut line : Vec<u8> = Vec::new();
     loop {
         line.clear();
