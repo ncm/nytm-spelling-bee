@@ -9,32 +9,29 @@ fn main() {
         "-" => Box::new(std::io::stdin()),
          _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
-    let mut input = std::io::BufReader::new(file);
 
     type Letters = u32;
     let mut words : Vec<Letters> = Vec::new();
     let mut sevens : BTreeSet<Letters> = BTreeSet::new();
 
     let mut line : Vec<u8> = Vec::new();
-    loop {
-        line.clear();
-	let len = match input.read_until('\n' as u8, &mut line) {
-            Ok(0) => break, Ok(l) => l, _ => break };
-        if len > 5 {
-            let mut word = 0;
+    let mut input = std::io::BufReader::new(file);
+    while let Ok(len) = input.read_until('\n' as u8, &mut line) {
+        if len == 0 { break } else if len  > 5 {
+            let mut word : Letters = 0;
             for c in &line {
                 match *c as char {
                     'a' ... 'z' => word |= 1u32 << (('z' as u8) - *c),
 		    '\n' => break,
-                     _ => { word = !0u32; break }
-                };
-            }
-            match word.count_ones() {
-                7       => { sevens.insert(word); words.push(word); },
-                0 ... 6 => {                      words.push(word); },
-                _    => ()
+                     _ => { word = !(0 as Letters); break }
+                }}
+            if word.count_ones() <= 7 {
+                words.push(word);
+                if word.count_ones() == 7 {
+                    sevens.insert(word); }
             }
         }
+        line.clear();
     }
 
     for seven in sevens.iter().rev() {
