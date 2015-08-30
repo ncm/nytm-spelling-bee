@@ -13,10 +13,11 @@ fn main() {
     type Letters = u32;
     let mut words : Vec<Letters> = Vec::new();
     let mut sevens : BTreeSet<Letters> = BTreeSet::new();
+
     let mut word : Letters = 0;
     let mut len = 0;
-    for wrap in std::io::BufReader::new(file).bytes() {
-        let c = match wrap { Ok(c) => c, _ => break };
+    for next in std::io::BufReader::new(file).bytes() {
+        let c = match next { Ok(c) => c, _ => break };
         len = match (c as char, len) {
             ('\n', -1 ... 4) => { word = 0; 0 },
             ('\n', _) => {
