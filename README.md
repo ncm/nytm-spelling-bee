@@ -62,16 +62,22 @@ It does depend on a runtime character set with contiguous alphabetic
 characters, and, by default, a ```/usr/share/dict/words``` file in the right
 place.
 
+The C++ version puzzlegen-old.cc runs faster on Intel Haswell than any other
+version, while all the C++ versions run about the same speed on Westmere.
+I.e., on Haswell most versions run artifically slowly. Curiously, adding a
+line "++count;" in the innermost loop makes puzzlegen-int.cc run as fast on
+Haswell as puzzlegen-old.cc.
+
 The Rust version of the program runs, on Intel Westmere, about 50% slower
 that the C++ version; on Haswell, 25% faster, but as a consequence of bugs
-in Haswell hardware, not any superiority of Rust code generation.
+in Haswell hardware, not superiority of Rust code generation.
 
 Alternative versions of the programs differ:
 
-  - puzzlegen.rs     -- base version, uses local bitset_set.h iterators
-  - puzzlegen-fix.rs -- iteration controlled by element indices, not bit masks
-  - puzzlegen-int.rs -- uses unsigned int rather than std::bitset<26>
-  - puzzlegen-min.rs -- uses unsigned int, and avoids lambdas
-  - puzzlegen-old.rs -- posted in gcc bug #67153, only version fast on Haswell
+  - puzzlegen.cc     -- base version, uses local bitset_set.h iterators
+  - puzzlegen-fix.cc -- iteration controlled by element indices, not bit masks
+  - puzzlegen-int.cc -- uses unsigned int rather than std::bitset<26>
+  - puzzlegen-min.cc -- uses unsigned int, and avoids lambdas
+  - puzzlegen-old.cc -- posted in gcc bug #67153, only version fast on Haswell
   - puzzlegen.rs     -- in Rust, reading into Vec<u8>, iterating by index
   - puzzlegen-sm.rs  -- reading via state machine, iterating by index
