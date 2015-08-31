@@ -14,27 +14,20 @@ fn main() {
     let mut words : Vec<Letters> = Vec::new();
     let mut sevens : BTreeSet<Letters> = BTreeSet::new();
 
-    let mut line : Vec<u8> = Vec::new();
-    let mut input = std::io::BufReader::new(file);
-    while let Ok(len) = input.read_until('\n' as u8, &mut line) {
-        if len == 0 {
-            break
-        } else if len  > 5 {
-            let mut word : Letters = 0;
-            for c in &line {
-                match *c as char {
-                    'a' ... 'z' => word |= 1u32 << (('z' as u8) - *c),
-		    '\n' => break,
-                     _ => { word = !(0 as Letters); break }
-                }
-            }
+    for line in std::io::BufReader::new(file).lines() {
+        let s = match line { Ok(s) => s,
+            _ => break } ;
+        if s.len() >= 5 {
+            let word = s.bytes().fold(0 as Letters,
+               | word, c | match c as char {
+                    'a' ... 'z' => word | 1u32 << (('z' as u8) - c),
+                              _ => !(0 as Letters) });
             if word.count_ones() <= 7 {
                 words.push(word);
                 if word.count_ones() == 7 {
                     sevens.insert(word) ; }
             }
         }
-        line.clear()
     }
 
     for seven in sevens.iter().rev() {
