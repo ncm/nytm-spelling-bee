@@ -11,8 +11,6 @@ fn main() {
     };
 
     type Letters = u32;
-    const A : u8 = 'a' as u8; const Z : u8 = 'z' as u8;
-    fn lettermask(c : u8) -> Letters { (1 as Letters) << Z - c }
     let mut words : Vec<Letters> = Vec::new();
     let mut sevens : BTreeSet<Letters> = BTreeSet::new();
 
@@ -20,10 +18,11 @@ fn main() {
         let s = match line { Ok(s) => s,
             _ => break } ;
         if s.len() >= 5 {
-            let word = s.bytes().fold(0 as Letters,
-                | word, c | match c {
-                    A ... Z => word | lettermask(c),
-                          _ => !(0 as Letters) });
+            const A : u8 = 'a' as u8; const Z : u8 = 'z' as u8;
+            let word = s.bytes().fold(
+                0 as Letters, | word, c | match c {
+                    A ... Z => word | (1 as Letters) << Z - c,
+                    _       => !(0 as Letters) });
             if word.count_ones() <= 7 {
                 words.push(word);
                 if word.count_ones() == 7 {
