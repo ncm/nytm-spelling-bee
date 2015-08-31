@@ -1,7 +1,7 @@
 CXX = g++
 RUSTC = rustc
 STDLIB =
-CXXFLAGS = -O3 $(STDLIB) -Wall -g3 -march=native -mtune=native
+CXXFLAGS = -O3 $(STDLIB) -Wall -march=native -mtune=native
 RUSTFLAGS = -C opt-level=3 -C target-cpu=native
 
 run: puzzlegen
@@ -13,7 +13,7 @@ runrs: puzzlegen-rust
 	cmp out.ref out
 
 puzzlegen: puzzlegen.cc bitset_set.h
-	$(CXX) $(CXXFLAGS) -std=c++14 $< -o $@
+	$(CXX) $(CXXFLAGS) -g3 -std=c++14 $< -o $@
 
 puzzlegen-rust: puzzlegen.rs
-	$(RUSTC) $(RUSTFLAGS) puzzlegen.rs -o puzzlegen-rust
+	$(RUSTC) $(RUSTFLAGS) -g $< -o $@

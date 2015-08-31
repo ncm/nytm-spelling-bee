@@ -17,19 +17,21 @@ fn main() {
     let mut word : Letters = 0;
     let mut len = 0;
     for next in std::io::BufReader::new(file).bytes() {
-        let c = match next { Ok(c) => c, _ => break };
+        let c = match next { Ok(c) => c,
+            _ => break };
         len = match (c as char, len) {
             ('\n', -1 ... 4) => { word = 0; 0 },
             ('\n', _) => {
                  if word.count_ones() <= 7 {
                      words.push(word);
                      if word.count_ones() == 7 {
-                         sevens.insert(word); } }
+                         sevens.insert(word); }
+                 }
                  word = 0; 0 },
-            (_, -1) => ( -1 ),
+            (_, -1) => -1,
             ('a' ... 'z', _) => { word |= 1 << (('z' as u8) - c); len + 1 },
-            (_, _)   => { -1 }
-        }
+            (_, _)   => -1
+        };
     }
 
     for seven in sevens.iter().rev() {
@@ -40,9 +42,8 @@ fn main() {
                 let mut rest : Letters = *seven;
                 for score in &mut scores {
                     if (*word & rest & !(rest - 1)) != 0 {
-                         *score += points;
-                    }
-                    rest &= rest - 1;
+                         *score += points }
+                    rest &= rest - 1
                 }
             }
         }
@@ -58,7 +59,6 @@ fn main() {
             rest &= rest - 1
         }
         if any {
-            println!("{}", buf)
-        }
+            println!("{}", buf) }
     }
 }

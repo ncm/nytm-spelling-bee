@@ -17,21 +17,24 @@ fn main() {
     let mut line : Vec<u8> = Vec::new();
     let mut input = std::io::BufReader::new(file);
     while let Ok(len) = input.read_until('\n' as u8, &mut line) {
-        if len == 0 { break } else if len  > 5 {
+        if len == 0 {
+            break
+        } else if len  > 5 {
             let mut word : Letters = 0;
             for c in &line {
                 match *c as char {
                     'a' ... 'z' => word |= 1u32 << (('z' as u8) - *c),
 		    '\n' => break,
                      _ => { word = !(0 as Letters); break }
-                }}
+                }
+            }
             if word.count_ones() <= 7 {
                 words.push(word);
                 if word.count_ones() == 7 {
-                    sevens.insert(word); }
+                    sevens.insert(word) ; }
             }
         }
-        line.clear();
+        line.clear()
     }
 
     for seven in sevens.iter().rev() {
@@ -42,9 +45,8 @@ fn main() {
                 let mut rest = *seven;
                 for score in &mut scores {
                     if (*word & rest & !(rest - 1)) != 0 {
-                         *score += points;
-                    }
-                    rest &= rest - 1;
+                         *score += points }
+                    rest &= rest - 1
                 }
             }
         }
@@ -57,10 +59,9 @@ fn main() {
                 _         => {             'z' } } as u8;
             let c = z - (rest.trailing_zeros() as u8);
             buf.insert(0, c as char);
-            rest &= rest - 1;
+            rest &= rest - 1
         }
         if any {
-            println!("{}", buf);
-        }
+            println!("{}", buf) }
     }
 } 
