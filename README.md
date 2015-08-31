@@ -3,9 +3,9 @@ puzzles as found in the New York Times Magazine, that they call
 "Spelling Bee".  These puzzles present a circle of six letters
 around a seventh, central letter, like
 ```
-   M O
-  P I S
-   T U
+    M   O
+  P   I   S
+    T   U
 ```
 The goal is to find common words that use only the letters in the
 set, and that all use the central letter.  Words that use all the
@@ -56,12 +56,22 @@ because (a) with ```set``` it is *exactly* as fast, but (b) produces more-
 pleasingly ordered output.  It makes only one pass through all the candidate
 words for each candidate letter-set.  It discards words on input that cannot
 be solutions.  Early versions used lambda functions that ended up being
-better-placed in the container adapter.
+better-placed in the container adapter (although on Haswell that is slower).
 
 It does depend on a runtime character set with contiguous alphabetic
 characters, and, by default, a ```/usr/share/dict/words``` file in the right
 place.
 
 The Rust version of the program runs, on Intel Westmere, about 50% slower
-that the C++ version; on Haswell, 25% faster.  This reveals more about
-bugs in Haswell than about the speed of Rust code.
+that the C++ version; on Haswell, 25% faster, but as a consequence of bugs
+in Haswell hardware, not any superiority of Rust code generation.
+
+Alternative versions of the programs differ:
+
+  - puzzlegen.rs     -- base version, uses local bitset_set.h iterators
+  - puzzlegen-fix.rs -- iteration controlled by element indices, not bit masks
+  - puzzlegen-int.rs -- uses unsigned int rather than std::bitset<26>
+  - puzzlegen-min.rs -- uses unsigned int, and avoids lambdas
+  - puzzlegen-old.rs -- posted in gcc bug #67153, only version fast on Haswell
+  - puzzlegen.rs     -- in Rust, reading into Vec<u8>, iterating by index
+  - puzzlegen-sm.rs  -- reading via state machine, iterating by index
