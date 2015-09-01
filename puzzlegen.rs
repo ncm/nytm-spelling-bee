@@ -35,7 +35,7 @@ fn main() {
                 |mut scores, (word, points)| {
                     scores.iter_mut()
                         .fold(*seven, |rest, score| {
-                            if word & rest ^ rest - 1 != 0 {
+                            if word & rest & !(rest - 1) != 0 {
                                 *score += points }
                             rest & rest - 1
                         });
