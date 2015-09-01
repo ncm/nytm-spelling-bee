@@ -9,6 +9,7 @@
 
 int main(int ac, char** av)
 {
+    std::ios_base::sync_with_stdio(false);
     std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];
     std::ifstream fs;
     std::istream& in = (name != "-") ? (fs.open(name), fs) : std::cin;
@@ -32,7 +33,6 @@ int main(int ac, char** av)
         }
     }
 
-    int count = 0;
     char buf[8]; buf[7] = '\n';
     for (Letters seven : sevens) {
         int score[7] = { 0, };
@@ -64,6 +64,5 @@ int main(int ac, char** av)
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
     }
-    std::cerr << count << '\n';
     return 0;
 }

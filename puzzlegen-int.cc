@@ -9,6 +9,7 @@
 
 int main(int ac, char** av)
 {
+    std::ios_base::sync_with_stdio(false);
     std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];
     std::ifstream fs;
     std::istream& in = (name != "-") ? (fs.open(name), fs) : std::cin;

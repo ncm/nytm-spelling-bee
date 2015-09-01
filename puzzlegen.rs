@@ -11,47 +11,46 @@ fn main() {
     };
 
     type Letters = u32;
+    const ZERO : Letters = 0; const ONE : Letters = 1;
     let mut words : Vec<Letters> = Vec::new();
     let sevens = std::io::BufReader::new(file).lines()
         .filter_map(|line| match line { Ok(s) => Some(s), _ => None })
         .filter(|line| line.len() >= 5)
-        .map(|line| line.bytes().fold(
-                0 as Letters, | word, c | match c as char {
-                    'a' ... 'z' => word | (1 as Letters) << 'z' as u8 - c,
-                    _           => !(0 as Letters) }))
+        .map(|line| line.bytes().fold(ZERO,
+             |word, c| match c as char {
+                'a' ... 'z' => word | ONE << ('z' as u8) - c,
+                         _  => !ZERO }))
         .filter(|word| word.count_ones() <= 7)
         .inspect(|word| words.push(*word))
         .filter(|word| word.count_ones() == 7)
         .collect::<BTreeSet<Letters>>();
 
+    let mut sink = std::io::BufWriter::new(std::io::stdout());
+    let mut out = [0u8;8]; out[7] = '\n' as u8;
     sevens.iter().rev().all(|seven| {
         let scores : [i32;7] = words.iter()
             .filter(|word| **word & !seven == 0)
             .map(|word| (word, if *word == *seven { 3 } else { 1 }))
             .fold([0;7],
                 |mut scores, (word, points)| {
-                    let mut rest = *seven;
-                    for score in &mut scores {
-                        let mask = rest & !(rest - 1);
-                        rest &= !mask;
-                        if (word & mask) != 0 {
-                            *score += points } }
+                    scores.iter_mut()
+                        .fold(*seven, |rest, score| {
+                            if word & rest ^ rest - 1 != 0 {
+                                *score += points }
+                            rest & rest - 1
+                        });
                     scores
                 });
-
-        let mut buf = String::new();
-        let (any, _) = scores.iter().fold((false, *seven),
-            |(any, rest), points| {
-                let mut this = false;
-                let z = match *points {
-                    26 ... 32 => { this = true; 'Z' },
-                    _         => {             'z' } } as u8;
-                let c = z - (rest.trailing_zeros() as u8);
-                buf.insert(0, c as char);
-                (any | this, rest & rest - 1)
+        let (any, _, _) = scores.iter()
+            .fold((false, *seven, 6), |(any, rest, i), score| {
+                let (this, z) = match *score {
+                    26 ... 32 => { (true,  'Z') },
+                            _ => { (false, 'z') } };
+                out[i] = (z as u8) - (rest.trailing_zeros() as u8);
+                (any|this, rest & rest - 1, i - 1)
             });
         if any {
-            println!("{}", buf) }
+            sink.write(&out).unwrap(); }
         true
     });
 } 
