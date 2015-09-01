@@ -24,31 +24,34 @@ fn main() {
         .filter(|word| word.count_ones() == 7)
         .collect::<BTreeSet<Letters>>();
 
-    for seven in sevens.iter().rev() {
-        let mut scores = [0; 7];
-        for word in words.iter() {
-            if *word & !*seven == 0 {
-                let points = if *word == *seven { 3 } else { 1 } ;
-                let mut rest = *seven;
-                for score in &mut scores {
-                    if (*word & rest & !(rest - 1)) != 0 {
-                         *score += points }
-                    rest &= rest - 1
-                }
-            }
-        }
-        let mut any = false;
-        let mut rest = *seven;
+    sevens.iter().rev().all(|seven| {
+        let scores : [i32;7] = words.iter()
+            .filter(|word| **word & !seven == 0)
+            .map(|word| (word, if *word == *seven { 3 } else { 1 }))
+            .fold([0;7],
+                |mut scores, (word, points)| {
+                    let mut rest = *seven;
+                    for score in &mut scores {
+                        let mask = rest & !(rest - 1);
+                        rest &= !mask;
+                        if (word & mask) != 0 {
+                            *score += points } }
+                    scores
+                });
+
         let mut buf = String::new();
-        for points in &scores {
-            let z = match *points {
-                26 ... 32 => { any = true; 'Z' },
-                _         => {             'z' } } as u8;
-            let c = z - (rest.trailing_zeros() as u8);
-            buf.insert(0, c as char);
-            rest &= rest - 1
-        }
+        let (any, _) = scores.iter().fold((false, *seven),
+            |(any, rest), points| {
+                let mut this = false;
+                let z = match *points {
+                    26 ... 32 => { this = true; 'Z' },
+                    _         => {             'z' } } as u8;
+                let c = z - (rest.trailing_zeros() as u8);
+                buf.insert(0, c as char);
+                (any | this, rest & rest - 1)
+            });
         if any {
             println!("{}", buf) }
-    }
+        true
+    });
 } 
