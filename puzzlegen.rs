@@ -3,6 +3,10 @@ use std::fs;
 use std::env::args;
 use std::collections::BTreeSet;
 
+type Letters = u32;
+const ZERO: Letters = 0;
+const ONE: Letters = 1;
+
 fn main() {
     let name = args().nth(1).unwrap_or(String::from("/usr/share/dict/words"));
     let stdin = std::io::stdin();
@@ -11,8 +15,6 @@ fn main() {
          _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
 
-    type Letters = u32;
-    const ZERO : Letters = 0; const ONE : Letters = 1;
     let mut words : Vec<Letters> = Vec::new();
     let sevens = std::io::BufReader::new(file).lines()
         .filter_map(|line| match line { Ok(s) => Some(s), _ => None })
