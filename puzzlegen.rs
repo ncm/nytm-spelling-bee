@@ -51,7 +51,7 @@ fn main() {
                 out[i] = (z as u8) - (rest.trailing_zeros() as u8);
                 (any_centers|this, rest & rest - 1, i - 1)
             });
-        if any {
+        if any_centers {
             sink.write(&out).unwrap(); }
 
         true
