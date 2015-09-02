@@ -1,6 +1,7 @@
 use std::io::prelude::*;
+use std::io::{self, BufReader};
 use std::fs;
-use std::env::args;
+use std::env;
 use std::collections::BTreeSet;
 
 type Letters = u32;
@@ -8,15 +9,15 @@ const ZERO: Letters = 0;
 const ONE: Letters = 1;
 
 fn main() {
-    let name = args().nth(1).unwrap_or(String::from("/usr/share/dict/words"));
-    let stdin = std::io::stdin();
-    let file : Box<std::io::Read> = match &name as &str {
+    let name = env::args().nth(1).unwrap_or(String::from("/usr/share/dict/words"));
+    let stdin = io::stdin();
+    let file : Box<io::Read> = match &name as &str {
         "-" => Box::new(stdin.lock()),
          _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
 
     let mut words : Vec<Letters> = Vec::new();
-    let sevens = std::io::BufReader::new(file).lines()
+    let sevens = BufReader::new(file).lines()
         .filter_map(|line| match line { Ok(s) => Some(s), _ => None })
         .filter(|line| line.len() >= 5)
         .map(|line| line.bytes().fold(ZERO,
@@ -28,7 +29,7 @@ fn main() {
         .filter(|word| word.count_ones() == 7)
         .collect::<BTreeSet<Letters>>();
 
-    let stdout = std::io::stdout();
+    let stdout = io::stdout();
     let mut sink = stdout.lock();
     let mut out = [0u8;8]; out[7] = '\n' as u8;
     sevens.iter().rev().all(|seven| {
