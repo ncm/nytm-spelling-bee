@@ -13,7 +13,7 @@ fn main() {
 
     let stdin = io::stdin();
 
-    let file : Box<io::Read> = match &name as &str {
+    let file : Box<io::Read> = match &*name {
         "-" => Box::new(stdin.lock()),
         _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
@@ -30,7 +30,7 @@ fn main() {
             })
         )
         .filter(|word| word.count_ones() <= 7)
-        .inspect(|word| words.push(*word))
+        .inspect(|&word| words.push(word))
         .filter(|word| word.count_ones() == 7)
         .collect::<BTreeSet<Letters>>();
 
@@ -42,8 +42,8 @@ fn main() {
 
     sevens.iter().rev().all(|seven| {
         let scores = words.iter()
-            .filter(|word| **word & !seven == 0)
-            .map(|word| (word, if *word == *seven { 3 } else { 1 }))
+            .filter(|&&word| word & !seven == 0)
+            .map(|word| (word, if word == seven { 3 } else { 1 }))
             .fold([0;7], |mut scores, (word, points)| {
                 scores.iter_mut().fold(*seven, |rest, score| {
                     if word & rest & !(rest - 1) != 0 {
