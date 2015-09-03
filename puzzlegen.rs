@@ -31,6 +31,7 @@ fn main() {
 
     let stdout = std::io::stdout();
     let mut sink = BufWriter::new(stdout.lock());
+    let mut out = [0u8;8]; out[7] = '\n' as u8;
     sevens.iter().rev().map(|&seven| {
         let scores = words.iter()
             .filter(|&&word| word & !seven == 0)
@@ -44,10 +45,6 @@ fn main() {
                 });
                 scores
             });
-        (seven, scores)
-    })
-    .filter_map(|(seven, scores)| {
-        let mut out = [0u8;8]; out[7] = '\n' as u8;
         let (is_viable, _, _) = scores.iter()
             .fold((false, seven, 6), |(is_viable, rest, i), &score| {
                 let (z, may_be_center) = match score {
@@ -57,7 +54,8 @@ fn main() {
                 out[i] = z - (rest.trailing_zeros() as u8);
                 (is_viable | may_be_center, rest & rest - 1, i - 1)
             });
-        if is_viable { Some(out) } else { None }
-    })
-    .all(|out| { sink.write(&out).unwrap(); true });
+         if is_viable {
+              sink.write(&out).unwrap();
+         };
+     }).all(|_| true);
 } 
