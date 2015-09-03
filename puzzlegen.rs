@@ -1,5 +1,5 @@
 use std::io::prelude::*;
-use std::io::{self, BufReader, BufWriter};
+use std::io::{BufReader, BufWriter};
 use std::fs;
 use std::env::args;
 use std::collections::BTreeSet;
@@ -10,10 +10,10 @@ const ONE : Letters = 1;
 
 fn main() {
     let name = args().nth(1).unwrap_or(String::from("/usr/share/dict/words"));
-    let stdin = io::stdin();
-    let file : Box<io::Read> = match &*name {
+    let stdin = std::io::stdin();
+    let file : Box<std::io::Read> = match &name as &str {
         "-" => Box::new(stdin.lock()),
-        _ => Box::new(fs::File::open(name).ok().expect("file open failed"))
+         _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
 
     let mut words : Vec<Letters> = Vec::new();
@@ -29,7 +29,8 @@ fn main() {
         .filter(|&word| word.count_ones() == 7)
         .collect::<BTreeSet<Letters>>();
 
-    let mut sink = BufWriter::new(io::stdout());
+    let stdout = std::io::stdout();
+    let mut sink = BufWriter::new(stdout.lock());
     let mut out = [0u8;8]; out[7] = '\n' as u8;
     sevens.iter().rev().all(|&seven| {
         let scores = words.iter()
