@@ -10,7 +10,7 @@ const Z : Letters = 1;
 fn main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
     let stdin = io::stdin();
-    let file : Box<io::Read> = match &name as &str {
+    let file : Box<io::Read> = match &*name {
         "-" => Box::new(stdin.lock()),
         _   => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
