@@ -31,31 +31,30 @@ fn main() {
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
-    sevens.iter().rev().map(|&seven| {
-        let scores = words.iter()
-            .filter(|&&word| word & !seven == 0)
-            .map(|&word| (word, if word == seven { 3 } else { 1 }))
-            .fold([0;7], |mut scores, (word, points)| {
-                scores.iter_mut().fold(seven, |rest, score| {
-                    if word & rest & !(rest - 1) != 0 {
-                        *score += points
-                    }
-                    rest & rest - 1
-                });
-                scores
-            });
-        let mut out : [u8;8] = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let (is_viable, _, _) = scores.iter()
-            .fold((false, seven, 6), |(is_viable, rest, i), &score| {
-                let (z, may_be_center) = match score {
+    for &seven in sevens.iter().rev() {
+        let mut scores = [0;7];
+        for &word in words.iter().filter(|&&word| word & !seven == 0) {
+            let points = if word == seven { 3 } else { 1 };
+            let mut rest = seven;
+            for score in &mut scores {
+                if word & rest & !(rest - 1) != 0 {
+                    *score += points
+                }
+                rest &= rest - 1
+            }
+        }
+        let (mut rest, mut i, mut is_viable, mut out) = (
+            seven, 0, false, [0, 0, 0, 0, 0, 0, 0, '\n' as u8]);
+        while rest != 0 {
+                let (z, may_be_center) = match scores[i] {
                     26 ... 32 => ('Z' as u8, true),
                     _         => ('z' as u8, false)
                 };
-                out[i] = z - (rest.trailing_zeros() as u8);
-                (is_viable | may_be_center, rest & rest - 1, i - 1)
-            });
+                out[6 - i] = z - (rest.trailing_zeros() as u8);
+                rest &= rest - 1; i += 1; is_viable |= may_be_center;
+         }
          if is_viable {
               sink.write(&out).unwrap();
          };
-    }).all(|_| true);
+    }
 } 
