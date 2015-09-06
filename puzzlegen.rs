@@ -54,9 +54,9 @@ fn main() {
                 };
                 out[6 - i] = z - (rest.trailing_zeros() as u8);
                 rest &= rest - 1; i += 1; is_viable |= may_be_center;
-         }
-         if is_viable {
-              sink.write(&out).unwrap();
-         };
+        }
+        if is_viable {
+             sink.write(&out).unwrap();
+        };
     }
 } 
