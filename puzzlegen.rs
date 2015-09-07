@@ -45,14 +45,14 @@ fn main() {
                 scores
             });
         let mut out : [u8;8] = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let (is_viable, _, _) = scores.iter()
-            .fold((false, seven, 6), |(is_viable, rest, i), &score| {
+        let (_, _, is_viable) = scores.iter()
+            .fold((6, seven, false), |(i, rest, is_viable), &score| {
                 let (z, may_be_center) = match score {
                     26 ... 32 => ('Z' as u8, true),
                     _         => ('z' as u8, false)
                 };
                 out[i] = z - (rest.trailing_zeros() as u8);
-                (is_viable | may_be_center, rest & rest - 1, i - 1)
+                (i - 1, rest & rest - 1, is_viable | may_be_center)
             });
          if is_viable {
               sink.write(&out).unwrap();
