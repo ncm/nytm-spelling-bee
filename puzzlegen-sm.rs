@@ -1,64 +1,65 @@
 use std::io::prelude::*;
-use std::fs;
-use std::env::args;
+use std::{fs,io,env};
 use std::collections::BTreeSet;
 
+const WORDS_FILE : &'static str = "/usr/share/dict/words";
+type Letters = u32;
+const Z : Letters = 1;
+
 fn main() {
-    let name = args().nth(1).unwrap_or(String::from("/usr/share/dict/words"));
-    let file : Box<std::io::Read> = match &name as &str {
-        "-" => Box::new(std::io::stdin()),
-         _  => Box::new(fs::File::open(name).ok().expect("file open failed"))
+    let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
+    let stdin = io::stdin();
+    let file : Box<io::Read> = match &*name {
+        "-" => Box::new(stdin.lock()),
+        _   => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
 
-    type Letters = u32;
     let mut words : Vec<Letters> = Vec::new();
-    let mut sevens : BTreeSet<Letters> = BTreeSet::new();
-
     let mut word : Letters = 0;
     let mut len = 0;
-    for next in std::io::BufReader::new(file).bytes() {
-        let c = match next { Ok(c) => c,
-            _ => break };
-        len = match (c as char, len) {
-            ('\n', -1 ... 4) => { word = 0; 0 },
-            ('\n', _) => {
-                 if word.count_ones() <= 7 {
-                     words.push(word);
-                     if word.count_ones() == 7 {
-                         sevens.insert(word); }
-                 }
-                 word = 0; 0 },
-            (_, -1) => -1,
-            ('a' ... 'z', _) => { word |= 1 << (('z' as u8) - c); len + 1 },
-            (_, _)   => -1
-        };
-    }
+    let sevens = io::BufReader::new(file).bytes()
+        .filter_map(|c| c.ok())
+        .filter_map(|c|
+            match (c as char, len) {
+                ('\n', -1 ... 4) => { word = 0; len = 0; None },
+                ('\n', _) => { let out = Some(word); word = 0; len = 0; out },
+                (_, -1) => None,
+                ('a' ... 'z', _) => {
+                    word |= Z << (('z' as u8) - c); len += 1; None },
+                (_, _)   => { len = -1; None }
+            })
+        .filter(|&word| word.count_ones() <= 7)
+        .inspect(|&word| words.push(word))
+        .filter(|&word| word.count_ones() == 7)
+        .collect::<BTreeSet<Letters>>();
 
-    for seven in sevens.iter().rev() {
-        let mut scores = [0; 7];
-        for word in words.iter() {
-            if *word & !*seven == 0 {
-                let points = if *word == *seven { 3 } else { 1 } ;
-                let mut rest : Letters = *seven;
-                for score in &mut scores {
-                    if (*word & rest & !(rest - 1)) != 0 {
-                         *score += points }
-                    rest &= rest - 1
-                }
-            }
-        }
-        let mut any = false;
-        let mut rest = *seven;
-        let mut buf = String::new();
-        for points in &scores {
-            let z = match *points {
-                26 ... 32 => { any = true; 'Z' },
-                        _ => {             'z' } } as u8;
-            let c = z - rest.trailing_zeros() as u8;
-            buf.insert(0, c as char);
-            rest &= rest - 1
-        }
-        if any {
-            println!("{}", buf) }
-    }
+    let stdout = io::stdout();
+    let mut sink = io::BufWriter::new(stdout.lock());
+    sevens.iter().rev().map(|&seven| {
+        let scores = words.iter()
+            .filter(|&&word| word & !seven == 0)
+            .map(|&word| (word, if word == seven { 3 } else { 1 }))
+            .fold([0;7], |mut scores, (word, points)| {
+                scores.iter_mut().fold(seven, |rest, score| {
+                    if word & rest & !(rest - 1) != 0 {
+                        *score += points
+                    }
+                    rest & rest - 1
+                });
+                scores
+            });
+        let mut out : [u8;8] = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
+        let (_, _, is_viable) = scores.iter()
+            .fold((6, seven, false), |(i, rest, is_viable), &score| {
+                let (z, may_be_center) = match score {
+                    26 ... 32 => ('Z' as u8, true),
+                    _         => ('z' as u8, false)
+                };
+                out[i] = z - (rest.trailing_zeros() as u8);
+                (i - 1, rest & rest - 1, is_viable | may_be_center)
+            });
+         if is_viable {
+              sink.write(&out).unwrap();
+         };
+    }).count();
 }
