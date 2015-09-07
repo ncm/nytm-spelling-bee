@@ -57,5 +57,5 @@ fn main() {
          if is_viable {
               sink.write(&out).unwrap();
          };
-    }).all(|_| true);
+    }).count();
 } 
