@@ -1,3 +1,10 @@
 out
 puzzlegen
 puzzlegen-rust
+*~
+*.s
+\#*#
+.#*
+.*.swp
+a.out
+stats
