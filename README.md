@@ -68,9 +68,8 @@ I.e., on Haswell most versions run artifically slowly. Curiously, adding a
 line "++count;" in the innermost loop makes puzzlegen-int.cc run as fast on
 Haswell as puzzlegen-old.cc.
 
-The Rust version of the program runs, on Intel Westmere, about 50% slower
-that the C++ version; on Haswell, 25% faster, but as a consequence of bugs
-in Haswell hardware, not superiority of Rust code generation.
+The Rust version of the program runs faster than any C++ version, in part
+because the compiler recognizes an opportunity to use SIMD instructions.
 
 Alternative versions of the programs differ:
 

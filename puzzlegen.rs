@@ -32,28 +32,28 @@ fn main() {
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
     sevens.iter().rev().map(|&seven| {
-        let scores = words.iter()
+        let mut scores = [0;7];
+        words.iter()
             .filter(|&&word| word & !seven == 0)
             .map(|&word| (word, if word == seven { 3 } else { 1 }))
-            .fold([0;7], |mut scores, (word, points)| {
+            .map(|(word, points)| {
                 scores.iter_mut().fold(seven, |rest, score| {
                     if word & rest & !(rest - 1) != 0 {
                         *score += points
                     }
                     rest & rest - 1
                 });
-                scores
-            });
-        let mut out : [u8;8] = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let (_, _, is_viable) = scores.iter()
-            .fold((6, seven, false), |(i, rest, is_viable), &score| {
-                let (z, may_be_center) = match score {
-                    26 ... 32 => ('Z' as u8, true),
-                    _         => ('z' as u8, false)
+            }).count();
+        let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
+        let (mut is_viable, mut rest, mut i) = (false, seven, 0);
+        while rest != 0 {
+                let z = match scores[i] {
+                    26 ... 32 => { is_viable = true; 'Z' as u8 },
+                    _         => 'z' as u8
                 };
-                out[i] = z - (rest.trailing_zeros() as u8);
-                (i - 1, rest & rest - 1, is_viable | may_be_center)
-            });
+                out[6 - i] = z - (rest.trailing_zeros() as u8);
+                i += 1; rest &= rest - 1
+         }
          if is_viable {
               sink.write(&out).unwrap();
          };
