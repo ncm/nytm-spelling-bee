@@ -16,7 +16,7 @@ fn main() {
     };
 
     let mut words : Vec<Letters> = Vec::new();
-    let sevens = io::BufReader::new(file).lines()
+    let sevens : BTreeSet<_> = io::BufReader::new(file).lines()
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
         .map(|line| line.bytes().fold(NONE, |word, c|
@@ -27,7 +27,7 @@ fn main() {
         .filter(|&word| word.count_ones() <= 7)
         .inspect(|&word| words.push(word))
         .filter(|&word| word.count_ones() == 7)
-        .collect::<BTreeSet<Letters>>();
+        .collect();
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
