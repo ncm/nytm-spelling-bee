@@ -31,7 +31,7 @@ fn main() {
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
-    for &seven in sevens.iter().rev() {
+    sevens.iter().rev().map(|&seven| {
         let scores = words.iter()
             .filter(|&&word| word & !seven == 0)
             .map(|&word| (word, if word == seven { 3 } else { 1 }))
@@ -55,5 +55,5 @@ fn main() {
             });
          if is_viable {
               sink.write(&out).unwrap(); };
-    }
+    }).count();
 }
