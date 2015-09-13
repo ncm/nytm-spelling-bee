@@ -25,10 +25,12 @@ fn main() {
                 ('\n', _) => { let out = Some(word); word = 0; len = 0; out },
                 (_, -1) => None,
                 ('a' ... 'z', _) => {
-                    word |= Z << (('z' as u8) - c); len += 1; None },
+                    word |= Z << (('z' as u8) - c);
+                    len = if word.count_ones() > 7 { -1 } else { len + 1 };
+                    None
+                },
                 (_, _)   => { len = -1; None }
             })
-        .filter(|&word| word.count_ones() <= 7)
         .inspect(|&word| words.push(word))
         .filter(|&word| word.count_ones() == 7)
         .collect();
