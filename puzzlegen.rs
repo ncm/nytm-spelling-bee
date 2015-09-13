@@ -45,15 +45,16 @@ fn main() {
                 });
             }).count();
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let (mut is_viable, mut rest, mut i) = (false, seven, 0);
-        while rest != 0 {
-                let z = match scores[i] {
+        let mut is_viable = false;
+        scores.iter().zip(out.iter_mut().rev().skip(1))
+            .fold(seven, |rest, (&score, out)| {
+                let z = match score {
                     26 ... 32 => { is_viable = true; 'Z' as u8 },
                     _         => 'z' as u8
                 };
-                out[6 - i] = z - (rest.trailing_zeros() as u8);
-                i += 1; rest &= rest - 1
-         }
+                *out = z - (rest.trailing_zeros() as u8);
+                rest & rest - 1
+            });
          if is_viable {
               sink.write(&out).unwrap();
          };
