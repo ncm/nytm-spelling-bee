@@ -17,7 +17,7 @@ fn main() {
     let mut words : Vec<Letters> = Vec::new();
     let mut word : Letters = 0;
     let mut len = 0;
-    let sevens = io::BufReader::new(file).bytes()
+    let sevens : BTreeSet<_> = io::BufReader::new(file).bytes()
         .filter_map(|c| c.ok())
         .filter_map(|c|
             match (c as char, len) {
@@ -31,7 +31,7 @@ fn main() {
         .filter(|&word| word.count_ones() <= 7)
         .inspect(|&word| words.push(word))
         .filter(|&word| word.count_ones() == 7)
-        .collect::<BTreeSet<Letters>>();
+        .collect();
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
@@ -42,24 +42,22 @@ fn main() {
             .fold([0;7], |mut scores, (word, points)| {
                 scores.iter_mut().fold(seven, |rest, score| {
                     if word & rest & !(rest - 1) != 0 {
-                        *score += points
-                    }
+                        *score += points }
                     rest & rest - 1
                 });
                 scores
             });
-        let mut out : [u8;8] = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let (_, _, is_viable) = scores.iter()
-            .fold((6, seven, false), |(i, rest, is_viable), &score| {
+        let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
+        let (_, is_viable) = scores.iter().zip(out.iter_mut().rev().skip(1))
+            .fold((seven, false), |(rest, is_viable), (&score, out)| {
                 let (z, may_be_center) = match score {
                     26 ... 32 => ('Z' as u8, true),
                     _         => ('z' as u8, false)
                 };
-                out[i] = z - (rest.trailing_zeros() as u8);
-                (i - 1, rest & rest - 1, is_viable | may_be_center)
+                *out = z - (rest.trailing_zeros() as u8);
+                (rest & rest - 1, is_viable | may_be_center)
             });
          if is_viable {
-              sink.write(&out).unwrap();
-         };
+              sink.write(&out).unwrap(); };
     }).count();
 }

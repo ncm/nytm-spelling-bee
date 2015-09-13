@@ -32,31 +32,28 @@ fn main() {
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
     for &seven in sevens.iter().rev() {
-        let mut scores = [0;7];
-        words.iter()
+        let scores = words.iter()
             .filter(|&&word| word & !seven == 0)
             .map(|&word| (word, if word == seven { 3 } else { 1 }))
-            .map(|(word, points)| {
+            .fold([0;7], |mut scores, (word, points)| {
                 scores.iter_mut().fold(seven, |rest, score| {
                     if word & rest & !(rest - 1) != 0 {
-                        *score += points
-                    }
+                        *score += points }
                     rest & rest - 1
                 });
-            }).count();
+                scores
+            });
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let mut is_viable = false;
-        scores.iter().zip(out.iter_mut().rev().skip(1))
-            .fold(seven, |rest, (&score, out)| {
+        let (is_viable, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
+            .fold((false, seven), |(mut is_viable, rest), (&score, out)| {
                 let z = match score {
                     26 ... 32 => { is_viable = true; 'Z' as u8 },
                     _         => 'z' as u8
                 };
                 *out = z - (rest.trailing_zeros() as u8);
-                rest & rest - 1
+                (is_viable, rest & rest - 1)
             });
          if is_viable {
-              sink.write(&out).unwrap();
-         };
+              sink.write(&out).unwrap(); };
     }
 }
