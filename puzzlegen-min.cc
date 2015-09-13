@@ -19,7 +19,6 @@ int main(int ac, char** av)
     using Letters = unsigned;
     std::vector<Letters> words;
     std::set<Letters, std::greater<>> sevens;
-
     for (std::istream_iterator<std::string> it(in), end; it != end; ++it) {
         if (it->size() >= 5) {
             Letters word = 0;
@@ -38,29 +37,20 @@ int main(int ac, char** av)
         int score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
+                const int points = (word == seven) ? 3 : 1;
                 Letters rest = seven;
-                Letters letter;
-                int place = 7;
-                do { 
-                    --place;
-                    letter = rest & -rest;
-                    if (word & letter) {
-                        score[place] += (word == seven) ? 3 : 1;
-                    }
-                } while (rest &= ~letter);
+                for (int place = 7; --place >= 0; rest &= rest - 1)
+                    if (word & rest & -rest)
+                        score[place] += points;
             }
         bool any = false;
         Letters rest = seven;
-        Letters letter;
-        int place = 7;
-        do { 
-            --place;
-            bool middle = (score[place] > 25 && score[place] < 33);
-            any |= middle;
-            letter = rest & -rest;
-            buf[place] = (middle ? 'Z' : 'z') - __builtin_ctzl(letter);
-        } while (rest &= ~letter);
-
+        for (int place = 7; --place >= 0; rest &= rest - 1) {
+            char z = 'z';
+            if (score[place] > 25 && score[place] < 33)
+                any = true, z = 'Z';
+            buf[place] = z - __builtin_ctzl(rest);
+        }
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
     }
