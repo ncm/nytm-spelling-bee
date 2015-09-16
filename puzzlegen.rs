@@ -19,14 +19,21 @@ fn main() {
     let sevens : BTreeSet<_> = io::BufReader::new(file).lines()
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
-        .map(|line| line.bytes().fold(NONE, |word, c|
-            match c as char {
-                'a' ... 'z' => word | Z << ('z' as u8) - c,
-                _  => !NONE
-            }))
-        .filter(|&word| word.count_ones() <= 7)
-        .inspect(|&word| words.push(word))
-        .filter(|&word| word.count_ones() == 7)
+        .map(|line| line.bytes()
+            .scan((0, NONE), |pair, c| {
+                if (*pair).0 <= 7 {
+                    let new = match c as char {
+                        'a' ... 'z' => (*pair).1 | Z << ('z' as u8) - c,
+                        _  => !NONE
+                    };
+                    *pair = (new.count_ones(), new);
+                    Some(*pair)
+                } else { None }
+            }).last().unwrap())
+        .filter(|&pair| pair.0 <= 7)
+        .inspect(|&pair| words.push(pair.1))
+        .filter(|&pair| pair.0 == 7)
+        .map(|pair| pair.1)
         .collect();
 
     let stdout = io::stdout();

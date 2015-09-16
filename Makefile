@@ -2,7 +2,7 @@ CXX = g++
 RUSTC = rustc
 STDLIB =
 CXXFLAGS = -O3 $(STDLIB) -Wall -march=native -mtune=native
-RUSTFLAGS = -C opt-level=3 -C target-cpu=native
+RUSTFLAGS = -C opt-level=2 -C target-cpu=corei7 -C target-feature="+sse4.2,+popcnt" # -C target-cpu=native
 
 run: puzzlegen
 	$(RTLIBPATH) time ./puzzlegen | tee out | wc -l
