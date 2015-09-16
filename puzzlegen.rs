@@ -4,8 +4,7 @@ use std::collections::BTreeSet;
 
 const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
-const NONE : Letters = 0;
-const Z : Letters = 1;
+const A : Letters = 1 << 25;
 
 fn main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
@@ -19,21 +18,19 @@ fn main() {
     let sevens : BTreeSet<_> = io::BufReader::new(file).lines()
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
-        .map(|line| line.bytes()
-            .scan((0, NONE), |pair, c| {
-                if (*pair).0 <= 7 {
-                    let new = match c as char {
-                        'a' ... 'z' => (*pair).1 | Z << ('z' as u8) - c,
-                        _  => !NONE
-                    };
-                    *pair = (new.count_ones(), new);
-                    Some(*pair)
-                } else { None }
-            }).last().unwrap())
-        .filter(|&pair| pair.0 <= 7)
-        .inspect(|&pair| words.push(pair.1))
-        .filter(|&pair| pair.0 == 7)
-        .map(|pair| pair.1)
+        .filter_map(|line| {
+            let mut word : Letters = 0;
+            for c in line.bytes() {
+                word |= match c as char {
+                    'a' ... 'z' => A >> c - ('a' as u8),
+                    _  => return None
+                };
+                if word.count_ones() > 7 {
+                    return None }
+            }
+            words.push(word);
+            Some(word)
+        }).filter(|&word| word.count_ones() == 7)
         .collect();
 
     let stdout = io::stdout();
@@ -53,11 +50,11 @@ fn main() {
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
         let (is_viable, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut is_viable, rest), (&score, out)| {
-                let z = match score {
-                    26 ... 32 => { is_viable = true; 'Z' as u8 },
-                    _         => 'z' as u8
+                let a = match score {
+                    26 ... 32 => { is_viable = true; 'A' as u8 },
+                    _         => 'a' as u8
                 };
-                *out = z - (rest.trailing_zeros() as u8);
+                *out = (rest.trailing_zeros() as u8) - a;
                 (is_viable, rest & rest - 1)
             });
          if is_viable {
