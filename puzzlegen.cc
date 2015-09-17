@@ -6,6 +6,7 @@
 #include <set>
 #include <functional>
 #include <streambuf>
+#include <cctype>
 #include "bitset_set.h"
 
 int main(int ac, char** av)
@@ -21,17 +22,17 @@ int main(int ac, char** av)
     std::vector<Letters> words;
     std::set<Letters, std::greater<>> sevens;
 
-    for (std::istream_iterator<std::string> it(in), end; it != end; ++it) {
-        if (it->size() >= 5) {
-            Letters word;
-            for (char c : *it)
-                (c >= 'a' && c <= 'z') ? word.set('z' - c) : word.set();
-            if (word.count() <= 7)
-                words.push_back(word);
-            if (word.count() == 7)
-                sevens.insert(word.to_ulong());
-        }
-    }
+    for (std::istream_iterator<std::string> it(in), e; it != e; ++it) [&]{
+        if (it->size() < 5)
+            return;
+        Letters word;
+        for (char c : *it)
+            if (!std::islower(c) || word.set(25 - (c - 'a')).count() > 7)
+                return;
+        words.push_back(word);
+        if (word.count() == 7)
+            sevens.insert(word.to_ulong());
+    }();
 
     char buf[8]; buf[7] = '\n';
     for (Letters const seven : sevens) {
@@ -49,9 +50,10 @@ int main(int ac, char** av)
         unsigned place = 7;
         for (Letters letter : seven) {
             --place;
-            bool middle = (score[place] > 25 && score[place] < 33);
-            buf[place] = (middle ? 'Z' : 'z') - letter.least_bit_position();
-            any |= middle;
+            char a = 'a';
+            if (score[place] >= 26 && score[place] <= 32)
+                any = true, a = 'A';
+            buf[place] = a + (25 - letter.least_bit_position());
         }
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);

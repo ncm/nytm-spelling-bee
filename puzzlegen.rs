@@ -28,8 +28,7 @@ fn main() {
                 if word.count_ones() > 7 {
                     return None }
             }
-            words.push(word);
-            Some(word)
+            words.push(word); Some(word)
         }).filter(|&word| word.count_ones() == 7)
         .collect();
 
@@ -54,7 +53,7 @@ fn main() {
                     26 ... 32 => { is_viable = true; 'A' as u8 },
                     _         => 'a' as u8
                 };
-                *out = (rest.trailing_zeros() as u8) - a;
+                *out = a + (25 - (rest.trailing_zeros() as u8));
                 (is_viable, rest & rest - 1)
             });
          if is_viable {
