@@ -37,7 +37,7 @@ fn main() {
     sevens.iter().rev().map(|&seven| {
         let (scores, bias) = words.iter()
             .filter(|&&word| word & !seven == 0)
-            .fold(([0;7], 0), |(mut scores, mut bias), &word| {
+            .fold(([0u16;7], 0u16), |(mut scores, mut bias), &word| {
                 if word == seven {
                    bias += 3;
                 } else {

@@ -40,7 +40,7 @@ fn main() {
     sevens.iter().rev().map(|&seven| {
         let (scores, bias) = words.iter()
             .filter(|&&word| word & !seven == 0)
-            .fold(([0;7], 0), |(mut scores, mut bias), &word| {
+            .fold(([0u16;7], 0u16), |(mut scores, mut bias), &word| {
                 if word == seven {
                    bias += 3;
                 } else {
@@ -59,7 +59,7 @@ fn main() {
                     26 ... 32 => { is_viable = true; 'A' as u8 },
                     _         => 'a' as u8
                 };
-                *out = a + (25 - rest.trailing_zeros()) as u8;
+                *out = a + (25u32 - rest.trailing_zeros()) as u8;
                 (is_viable, rest & rest - 1)
             });
          if is_viable {
