@@ -35,21 +35,24 @@ fn main() {
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
     sevens.iter().rev().map(|&seven| {
-        let scores = words.iter()
+        let (scores, bias) = words.iter()
             .filter(|&&word| word & !seven == 0)
-            .map(|&word| (word, if word == seven { 3 } else { 1 }))
-            .fold([0;7], |mut scores, (word, points)| {
-                scores.iter_mut().fold(seven, |rest, score| {
-                    if word & rest & !(rest - 1) != 0 {
-                        *score += points }
-                    rest & rest - 1
-                });
-                scores
+            .fold(([0;7], 0), |(mut scores, mut bias), &word| {
+                if word == seven {
+                   bias += 3;
+                } else {
+                    scores.iter_mut().fold(seven, |rest, score| {
+                       if word & rest & !(rest - 1) != 0 {
+                           *score += 1 }
+                       rest & rest - 1
+                    });
+                };
+                (scores, bias)
             });
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
         let (is_viable, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut is_viable, rest), (&score, out)| {
-                let a = match score {
+                let a = match score + bias {
                     26 ... 32 => { is_viable = true; 'A' as u8 },
                     _         => 'a' as u8
                 };

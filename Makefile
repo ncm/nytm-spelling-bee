@@ -12,7 +12,7 @@ runrs: puzzlegen-rust
 	time ./puzzlegen-rust | tee out | wc -l
 	cmp out.ref out
 
-puzzlegen: puzzlegen.cc bitset_set.h
+puzzlegen: puzzlegen-min.cc # bitset_set.h
 	$(CXX) $(CXXFLAGS) -g3 -std=c++14 $< -o $@
 
 puzzlegen-rust: puzzlegen.rs

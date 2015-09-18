@@ -20,7 +20,7 @@ int main(int ac, char** av)
     using Letters = unsigned;
     const Letters A = 1 << ('z' - 'a');
     std::vector<Letters> words;
-    std::set<Letters, std::greater<>> sevens;
+    std::set<Letters,std::greater<>> sevens;
     for (std::istream_iterator<std::string> in(file), e; in != e; ++in) [&]{
         if (in->size() < 5)
             return;
@@ -35,22 +35,25 @@ int main(int ac, char** av)
     }();
 
     for (Letters seven : sevens) {
-        int score[7] = { 0, };
+        short bias = 0, score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
-                const int points = (word == seven) ? 3 : 1;
-                Letters rest = seven;
-                for (int place = 7; --place >= 0; rest &= rest - 1)
-                    if (word & rest & -rest)
-                        score[place] += points;
+                if (word == seven)
+                    bias += 3;
+                else {
+                    Letters rest = seven;
+                    for (int place = 7; --place >= 0; rest &= rest - 1)
+                        if (word & rest & -rest)
+                            ++score[place];
+                }
             }
         bool any = false;
         Letters rest = seven;
-        char buf[8] = { 0, 0, 0, 0, 0, 0, 0, '\n' };
+        char buf[8]; buf[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
-            char a = 'a';
-            if (score[place] >= 26 && score[place] <= 32)
-                any = true, a = 'A';
+            const int points = score[place] + bias;
+            const char a = (points >= 26 && points <= 32) ?
+                any = true, 'A' : 'a';
             buf[place] = a + (25 - __builtin_ctzl(rest));
         }
         if (any)

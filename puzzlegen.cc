@@ -34,25 +34,27 @@ int main(int ac, char** av)
             sevens.insert(word.to_ulong());
     }();
 
-    char buf[8]; buf[7] = '\n';
     for (Letters const seven : sevens) {
-        int score[7] = { 0, };
+        int bias = 0, score[7] = { 0, };
         for (Letters word : words)
-            if ((word & ~seven).none()) {
+            if (word == seven)
+                bias += 3;
+            else if ((word & ~seven).none()) {
                 unsigned place = 7;
                 for (Letters letter : seven) {
                     --place;
                     if ((word & letter).any())
-                        score[place] += (word == seven) ? 3 : 1;
+                        ++score[place];
                 }
             }
         bool any = false;
         unsigned place = 7;
+        char buf[8]; buf[7] = '\n';
         for (Letters letter : seven) {
             --place;
-            char a = 'a';
-            if (score[place] >= 26 && score[place] <= 32)
-                any = true, a = 'A';
+            const int points = score[place] + bias;
+            const char a = (points >= 26 && points <= 32) ?
+                any = true, 'A' : 'a';
             buf[place] = a + (25 - letter.least_bit_position());
         }
         if (any)
