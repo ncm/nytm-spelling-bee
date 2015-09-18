@@ -7,55 +7,54 @@
 #include <functional>
 #include <streambuf>
 #include <cctype>
-#include "bitset_set.h"
 
 int main(int ac, char** av)
 {
     std::ios_base::sync_with_stdio(false);
     std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];
     std::ifstream fs;
-    std::istream& in = (name != "-") ? (fs.open(name), fs) : std::cin;
-    if (!in)
+    std::istream& file = (name != "-") ? (fs.open(name), fs) : std::cin;
+    if (!file)
         return std::cerr << "file open failed, " << name << '\n', 1;
 
-    using Letters = tst::bitset_set<'z'-'a'+1>;
+    using Letters = unsigned;
+    const Letters A = 1 << ('z' - 'a');
     std::vector<Letters> words;
-    std::set<Letters, std::greater<>> sevens;
-
-    for (std::istream_iterator<std::string> it(in), e; it != e; ++it) [&]{
-        if (it->size() < 5)
+    std::set<Letters,std::greater<>> sevens;
+    for (std::istream_iterator<std::string> in(file), e; in != e; ++in) [&]{
+        if (in->size() < 5)
             return;
-        Letters word;
-        for (char c : *it)
-            if (!std::islower(c) || word.set(25 - (c - 'a')).count() > 7)
+        Letters word = 0;
+        for (auto c : *in)
+            if (!std::islower(c) ||
+                    7 < __builtin_popcountl(word |= A >> (c - 'a'))) 
                 return;
         words.push_back(word);
-        if (word.count() == 7)
-            sevens.insert(word.to_ulong());
+        if (__builtin_popcountl(word) == 7)
+            sevens.insert(word);
     }();
 
-    for (Letters const seven : sevens) {
-        int bias = 0, score[7] = { 0, };
+    for (Letters seven : sevens) {
+        short bias = 0, score[7] = { 0, };
         for (Letters word : words)
-            if (word == seven)
-                bias += 3;
-            else if ((word & ~seven).none()) {
-                unsigned place = 7;
-                for (Letters letter : seven) {
-                    --place;
-                    if ((word & letter).any())
-                        ++score[place];
+            if (!(word & ~seven)) {
+                if (word == seven)
+                    bias += 3;
+                else {
+                    Letters rest = seven;
+                    for (int place = 7; --place >= 0; rest &= rest - 1)
+                        if (word & rest & -rest)
+                            ++score[place];
                 }
             }
         bool any = false;
-        unsigned place = 7;
+        Letters rest = seven;
         char buf[8]; buf[7] = '\n';
-        for (Letters letter : seven) {
-            --place;
+        for (int place = 7; --place >= 0; rest &= rest - 1) {
             const int points = score[place] + bias;
             const char a = (points >= 26 && points <= 32) ?
                 any = true, 'A' : 'a';
-            buf[place] = a + (25 - letter.least_bit_position());
+            buf[place] = a + (25 - __builtin_ctzl(rest));
         }
         if (any)
             std::cout.rdbuf()->sputn(buf, 8);
