@@ -21,12 +21,12 @@ fn main() {
         .filter_map(|line| {
             let mut word : Letters = 0;
             for c in line.bytes() {
-                word |= match c as char {
-                    'a' ... 'z' => A >> c - ('a' as u8),
+                match c as char {
+                    'a' ... 'z' => word |= A >> c - ('a' as u8),
                     _  => return None
                 };
-                if word.count_ones() > 7 {
-                    return None }
+                if word.count_ones() > 7
+                    { return None }
             }
             words.push(word); Some(word)
         }).filter(|&word| word.count_ones() == 7)
@@ -39,12 +39,12 @@ fn main() {
             .filter(|&&word| word & !seven == 0)
             .fold(([0u16;7], 0u16), |(mut scores, mut bias), &word| {
                 if word == seven {
-                   bias += 3;
+                    bias += 3;
                 } else {
                     scores.iter_mut().fold(seven, |rest, score| {
-                       if word & rest & !(rest - 1) != 0 {
-                           *score += 1 }
-                       rest & rest - 1
+                        if word & rest & !(rest - 1) != 0
+                            { *score += 1 }
+                        rest & rest - 1
                     });
                 };
                 (scores, bias)
@@ -59,7 +59,7 @@ fn main() {
                 *out = a + (25 - (rest.trailing_zeros() as u8));
                 (is_viable, rest & rest - 1)
             });
-         if is_viable {
-              sink.write(&out).unwrap(); };
+        if is_viable {
+            sink.write(&out).unwrap(); };
     }).count();
 }

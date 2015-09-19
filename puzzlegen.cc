@@ -6,7 +6,6 @@
 #include <set>
 #include <functional>
 #include <streambuf>
-#include <cctype>
 
 int main(int ac, char** av)
 {
@@ -26,8 +25,8 @@ int main(int ac, char** av)
             return;
         Letters word = 0;
         for (auto c : *in)
-            if (!std::islower(c) ||
-                    7 < __builtin_popcountl(word |= A >> (c - 'a'))) 
+            if (c < 'a' || c > 'z' ||
+                    (word |= A >> (c - 'a'), 7 < __builtin_popcountl(word)))
                 return;
         words.push_back(word);
         if (__builtin_popcountl(word) == 7)
