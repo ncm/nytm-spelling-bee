@@ -5,6 +5,8 @@ use std::collections::BTreeSet;
 const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
 const A : Letters = 1 << 25;
+const NONE : Letters = 0;
+fn some_if<V>(p: bool, v: V) -> Option<V> { if p { Some(v) } else { None }}
 
 fn main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
@@ -18,23 +20,18 @@ fn main() {
     let sevens : BTreeSet<_> = io::BufReader::new(file).lines()
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
-        .filter_map(|line| {
-            let mut word : Letters = 0;
-            for c in line.bytes() {
-                match c as char {
-                    'a' ... 'z' => word |= A >> c - ('a' as u8),
-                    _  => return None
-                };
-                if word.count_ones() > 7
-                    { return None }
-            }
-            words.push(word); Some(word)
-        }).filter(|&word| word.count_ones() == 7)
+        .filter_map(|line| line.bytes().scan(NONE, |word, c| 
+            some_if(word.count_ones() <= 7, match c as char {
+                'a' ... 'z' => { *word |= A >> c - ('a' as u8); *word }
+                _  => { *word = !NONE; *word }
+            })).last())
+        .filter(|&word| word.count_ones() <= 7)
+        .filter(|&word| { words.push(word); word.count_ones() == 7 })
         .collect();
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
-    sevens.iter().rev().map(|&seven| {
+    for &seven in sevens.iter().rev() {
         let (scores, bias) = words.iter()
             .filter(|&&word| word & !seven == 0)
             .fold(([0u16;7], 0u16), |(mut scores, mut bias), &word| {
@@ -59,7 +56,7 @@ fn main() {
                 *out = a + (25 - (rest.trailing_zeros() as u8));
                 (is_viable, rest & rest - 1)
             });
-        if is_viable {
-            sink.write(&out).unwrap(); };
-    }).count();
+        if is_viable
+            { sink.write(&out).unwrap(); };
+    }
 }
