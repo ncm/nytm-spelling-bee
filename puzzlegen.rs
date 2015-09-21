@@ -37,13 +37,11 @@ fn main() {
             .fold(([0u16;7], 0u16), |(mut scores, mut bias), word| {
                 if word == seven {
                     bias += 3;
-                } else {
-                    scores.iter_mut().fold(seven, |rest, score| {
-                        if word & rest & !(rest - 1) != 0
-                            { *score += 1 }
-                        rest & rest - 1
-                    });
-                };
+                } else { scores.iter_mut().fold(seven, |rest, score| {
+                    if word & rest & !(rest - 1) != 0
+                        { *score += 1 }
+                    rest & rest - 1
+                });};
                 (scores, bias)
             });
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
