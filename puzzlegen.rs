@@ -42,7 +42,7 @@ fn main() {
                     if word & rest & !(rest - 1) != 0
                         { *score += 1 }
                     rest & rest - 1
-                });};
+                });}
                 (scores, bias)
             });
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
