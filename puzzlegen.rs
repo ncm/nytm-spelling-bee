@@ -6,7 +6,6 @@ const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
 const A : Letters = 1 << 25;
 const NONE : Letters = 0;
-fn some_if<V>(p: bool, v: V) -> Option<V> { if p { Some(v) } else { None }}
 
 fn main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
@@ -21,10 +20,12 @@ fn main() {
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
         .filter_map(|line| line.bytes().scan(NONE, |word, c|
-            some_if(word.count_ones() <= 7, match c as char {
-                'a' ... 'z' => { *word |= A >> c - ('a' as u8); *word }
-                _  => { *word = !NONE; *word }
-            })).last())
+            if word.count_ones() <= 7 {
+                Some(match c as char {
+                    'a' ... 'z' => { *word |= A >> c - ('a' as u8); *word }
+                    _  => { *word = !NONE; *word }
+                })
+            } else { None }).last())
         .filter(|&word| word.count_ones() <= 7)
         .filter(|&word| { words.push(word); word.count_ones() == 7 })
         .collect();
