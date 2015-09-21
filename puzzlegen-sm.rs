@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
 const A : Letters = 1 << 25;
+const ALL : Letters = !0;
 
 fn main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
@@ -14,22 +15,22 @@ fn main() {
         _   => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
 
-    let (mut word, mut len) = (0 as Letters, 0);
     let mut words : Vec<Letters> = Vec::new();
     let sevens : BTreeSet<_> = io::BufReader::new(file).bytes()
         .filter_map(|resultc| resultc.ok())
-        .filter_map(|c| Some(match (c as char, len) {
-            ('\n', -1 ... 4) => { word = 0; len = 0; return None },
-            (_, -1) => return None,
-            ('\n', _) => { let out = word; word = 0; len = 0; out },
+        .scan((0 as Letters, 0), |state, c| Some(match (c as char, state.1) {
+            ('\n', -1 ... 4) => { *state = (0, 0); ALL },
+            (_, -1) => ALL,
+            ('\n', _) => { let word = state.0; *state = (0, 0);  word },
             ('a' ... 'z', _) => {
-                    word |= A >> c - ('a' as u8); len += 1;
-                    if word.count_ones() > 7
-                        { len = -1 }
-                    return None
+                    let word = state.0 | A >> c - ('a' as u8);
+                    if word.count_ones() <= 7
+                          { *state = (word, 1 + state.1); ALL }
+                    else { *state = (ALL, -1); ALL }
                 },
-            (_, _) => { len = -1; return None }
-        })).filter(|&word| { words.push(word); word.count_ones() == 7 })
+            (_, _) => { *state = (ALL, -1); ALL }
+        })).filter(|&word| word.count_ones() <= 7)
+        .filter(|&word| { words.push(word); word.count_ones() == 7 })
         .collect();
 
     let stdout = io::stdout();
@@ -51,8 +52,8 @@ fn main() {
         let (is_viable, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut is_viable, rest), (&score, out)| {
                 let a = match score + bias
-                    { 26 ... 32 => { is_viable = true; 'A' }, _ => 'a' } as u8;
-                *out = a + (25u32 - rest.trailing_zeros()) as u8;
+                    { 26 ... 32 => { is_viable = true; 'A' }, _ => 'a' };
+                *out = (a as u8) + (25u32 - rest.trailing_zeros()) as u8;
                 (is_viable, rest & rest - 1)
             });
          if is_viable
