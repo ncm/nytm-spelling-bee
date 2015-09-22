@@ -29,7 +29,7 @@ extern "C" int main(int ac, char** av)
             word = 0, len = 0;
         } else if (len != -1 && *in >= 'a' && *in <= 'z') {
             word |= A >> (*in - 'a');
-            (__builtin_popcountl(word) <= 7) ? ++len : len = -1;
+            len = (__builtin_popcountl(word) <= 7) ? len + 1 : -1;
         } else { len = -1; }
     }
 
