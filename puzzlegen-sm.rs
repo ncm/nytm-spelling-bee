@@ -5,7 +5,6 @@ use std::collections::BTreeSet;
 const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
 const A : Letters = 1 << 25;
-const ALL : Letters = !0;
 
 fn main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
@@ -18,18 +17,20 @@ fn main() {
     let mut words : Vec<Letters> = Vec::new();
     let sevens : BTreeSet<_> = io::BufReader::new(file).bytes()
         .filter_map(|resultc| resultc.ok())
-        .scan((0 as Letters, 0), |state, c| Some(match (c as char, state.1) {
-            ('\n', -1 ... 4) => { *state = (0, 0); ALL },
-            (_, -1) => ALL,
-            ('\n', _) => { let word = state.0; *state = (0, 0);  word },
-            ('a' ... 'z', _) => {
-                    let word = state.0 | A >> c - ('a' as u8);
+        .scan((0 as Letters, 0), |&mut (ref mut word, ref mut len), c|
+            Some(match (c as char, *len) {
+                ('\n', -1 ... 4) => { *word = 0; *len = 0; None },
+                (_, -1) => None,
+                ('\n', _) => { let w = *word; *word = 0; *len = 0;  Some(w) },
+                ('a' ... 'z', _) => {
+                    *word |= A >> c - ('a' as u8);
                     if word.count_ones() <= 7
-                          { *state = (word, 1 + state.1); ALL }
-                    else { *state = (ALL, -1); ALL }
+                          { *len += 1; None }
+                    else { *len = -1; None }
                 },
-            (_, _) => { *state = (ALL, -1); ALL }
-        })).filter(|&word| word.count_ones() <= 7)
+                (_, _) => { *len = -1; None }
+            })
+        ).filter_map(|option| option)
         .filter(|&word| { words.push(word); word.count_ones() == 7 })
         .collect();
 
