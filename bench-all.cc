@@ -22,11 +22,11 @@ int main(int ac, char** av)
 #ifdef CC
     run("cc", [ac,av]() { cc_main(ac, av); });
 #endif
-#ifdef RS
-    run("rs", rs_main);
-#endif
 #ifdef SMCC
     run("sm-cc", [ac,av]() { sm_cc_main(ac, av); });
+#endif
+#ifdef RS
+    run("rs", rs_main);
 #endif
 #ifdef SMRS
     run("sm-rs", sm_rs_main);
