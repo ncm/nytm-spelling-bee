@@ -1,7 +1,12 @@
-out
-puzzlegen
-puzzlegen-rust
+*.bench.out
+puzzlegen-cc
+puzzlegen-sm-cc
+puzzlegen-rs
+puzzlegen-sm-rs
+*.bench
 *~
+*.o
+*.a
 *.s
 \#*#
 .#*

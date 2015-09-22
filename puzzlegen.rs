@@ -7,7 +7,8 @@ type Letters = u32;
 const A : Letters = 1 << 25;
 const NONE : Letters = 0;
 
-fn main() {
+#[no_mangle]
+pub extern fn rs_main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
     let stdin = io::stdin();
     let file : Box<io::Read> = match &*name {
@@ -57,3 +58,6 @@ fn main() {
             { sink.write(&out).unwrap(); };
     }
 }
+
+#[cfg(not(main))]
+fn main() { rs_main(); }

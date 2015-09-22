@@ -6,6 +6,9 @@
 #include <functional>
 #include <streambuf>
 
+#ifdef main
+extern "C"
+#endif
 int main(int ac, char** av)
 {
     std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];

@@ -6,7 +6,8 @@ const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
 const A : Letters = 1 << 25;
 
-fn main() {
+#[no_mangle]
+pub extern fn sm_rs_main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
     let stdin = io::stdin();
     let file : Box<io::Read> = match &*name {
@@ -61,3 +62,6 @@ fn main() {
               { sink.write(&out).unwrap(); };
     }
 }
+
+#[cfg(not(main))]
+fn main() { sm_rs_main(); }
