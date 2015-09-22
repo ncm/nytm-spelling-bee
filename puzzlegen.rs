@@ -46,14 +46,14 @@ fn main() {
                 (scores, bias)
             });
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let (is_viable, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
-            .fold((false, seven), |(mut is_viable, rest), (&score, out)| {
+        let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
+            .fold((false, seven), |(mut any, rest), (&score, out)| {
                 let a = match score + bias
-                    { 26 ... 32 => { is_viable = true; 'A' }, _ => 'a' } as u8;
+                    { 26 ... 32 => { any = true; 'A' }, _ => 'a' } as u8;
                 *out = a + (25 - (rest.trailing_zeros() as u8));
-                (is_viable, rest & rest - 1)
+                (any, rest & rest - 1)
             });
-        if is_viable
+        if any
             { sink.write(&out).unwrap(); };
     }
 }

@@ -20,17 +20,16 @@ int main(int ac, char** av)
     std::set<Letters,std::greater<>> sevens;
     Letters word = 0; int len = 0;
     for (std::istreambuf_iterator<char> in(file), e; in != e; ++in) {
-        if (*in == '\n' && len < 5) {
-            word = 0; len = 0;
-        } else if (len < 0) {
-        } else if (*in == '\n') {
-            words.push_back(word);
-            if (__builtin_popcountl(word) == 7)
-                sevens.insert(word);
-            word = 0; len = 0;
-        } else if (*in >= 'a' && *in <= 'z') {
+        if (*in == '\n') {
+            if (len >= 5) {
+                words.push_back(word);
+                if (__builtin_popcountl(word) == 7)
+                    sevens.insert(word);
+            }
+            word = 0, len = 0;
+        } else if (len != -1 && *in >= 'a' && *in <= 'z') {
             word |= A >> (*in - 'a');
-            len = (__builtin_popcountl(word) <= 7) ? len + 1 : -1;
+            (__builtin_popcountl(word) <= 7) ? ++len : len = -1;
         } else { len = -1; }
     }
 

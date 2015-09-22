@@ -25,7 +25,7 @@ int main(int ac, char** av)
         Letters word = 0;
         for (auto c : *in)
             if (c < 'a' || c > 'z' ||
-                    (word |= A >> (c - 'a'), 7 < __builtin_popcountl(word)))
+                    (word |= A >> (c - 'a'), __builtin_popcountl(word) > 7))
                 return;
         words.push_back(word);
         if (__builtin_popcountl(word) == 7)
