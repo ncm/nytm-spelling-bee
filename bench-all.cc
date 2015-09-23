@@ -6,15 +6,16 @@ extern "C" int sm_cc_main(int ac, char** av);
 extern "C" int rs_main();
 extern "C" int sm_rs_main();
 
-auto run = [](char const* n, auto f) {
+auto run = [](char const* name, auto f) {
     timeval before, after;
     gettimeofday(&before, nullptr);
     for (int t = 0; t < 20; ++t)
         f();
     gettimeofday(&after, nullptr);
-    std::cerr << ((after.tv_sec - before.tv_sec) * 1000000 +
-                  (after.tv_usec - before.tv_usec)) / 1000000.0
-              << ' ' << n << '\n';
+
+    long long t = (after.tv_sec - before.tv_sec) * 1000000 +
+                      (after.tv_usec - before.tv_usec);
+    std::cerr << t / 1000000.0 << ' ' << name << '\n';
 };
 
 int main(int ac, char** av)
