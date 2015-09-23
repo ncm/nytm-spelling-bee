@@ -3,7 +3,7 @@
 #include <iterator>
 #include <string>
 #include <vector>
-#include <set>
+#include <map>
 #include <functional>
 #include <streambuf>
 
@@ -18,7 +18,7 @@ extern "C" { int main(int ac, char** av)
     using Letters = unsigned;
     const Letters A = 1 << ('z' - 'a');
     std::vector<Letters> words;
-    std::set<Letters,std::greater<>> sevens;
+    std::map<Letters,int,std::greater<>> sevens;
     for (std::istream_iterator<std::string> in(file), e; in != e; ++in) [&]{
         if (in->size() < 5)
             return;
@@ -27,26 +27,23 @@ extern "C" { int main(int ac, char** av)
             if (c < 'a' || c > 'z' ||
                     (word |= A >> (c - 'a'), __builtin_popcountl(word) > 7))
                 return;
-        words.push_back(word);
         if (__builtin_popcountl(word) == 7)
-            sevens.insert(word);
+            ++sevens[word];
+        else words.push_back(word);
     }();
 
-    for (Letters seven : sevens) {
-        short bias = 0, score[7] = { 0, };
+    for (auto const& sevencount : sevens) {
+        const Letters seven = sevencount.first;
+        short score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
-                if (word == seven) {
-                    bias += 3;
-                } else {
-                    Letters rest = seven;
-                    for (int place = 7; --place >= 0; rest &= rest - 1)
-                        if (word & rest & -rest)
-                            ++score[place];
-                }
+                Letters rest = seven;
+                for (int place = 7; --place >= 0; rest &= rest - 1)
+                    if (word & rest & -rest)
+                        ++score[place];
             }
-        bool any = false;
-        Letters rest = seven;
+        bool any = false; Letters rest = seven;
+        short bias = sevencount.second * 3;
         char buf[8]; buf[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
             const int points = score[place] + bias;

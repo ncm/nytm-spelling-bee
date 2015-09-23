@@ -1,6 +1,6 @@
 use std::io::prelude::*;
 use std::{env, io, fs};
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 
 const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
@@ -15,8 +15,8 @@ const NONE : Letters = 0;
         _   => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
 
-    let mut words : Vec<Letters> = Vec::new();
-    let sevens : BTreeSet<_> = io::BufReader::new(file).lines()
+    let mut sevens : BTreeMap<Letters,u16> = BTreeMap::new();
+    let words : Vec<_> = io::BufReader::new(file).lines()
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
         .filter_map(|line| line.bytes().scan(NONE, |word, c|
@@ -27,25 +27,26 @@ const NONE : Letters = 0;
                 })
             } else { None }).last())
         .filter(|&word| word.count_ones() <= 7)
-        .filter(|&word| { words.push(word); word.count_ones() == 7 })
+        .filter_map(|word| if word.count_ones() < 7
+                { Some(word) }
+            else { *sevens.entry(word).or_insert(0) += 1; None })
         .collect();
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
-    for &seven in sevens.iter().rev() {
-        let (scores, bias) = words.iter().map(|&word| word)
+    for (&seven, &count) in sevens.iter().rev() {
+        let scores = words.iter().map(|&word| word)
             .filter(|&word| word & !seven == 0)
-            .fold(([0u16;7], 0u16), |(mut scores, mut bias), word| {
-                if word == seven {
-                    bias += 3;
-                } else { scores.iter_mut().fold(seven, |rest, score| {
+            .fold([0u16;7], |mut scores, word| {
+                scores.iter_mut().fold(seven, |rest, score| {
                     if word & rest & !(rest - 1) != 0
                         { *score += 1 }
                     rest & rest - 1
-                });}
-                (scores, bias)
+                });
+                scores
             });
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
+        let bias = count * 3;
         let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut any, rest), (&score, out)| {
                 let a = match score + bias

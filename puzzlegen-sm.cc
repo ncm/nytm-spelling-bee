@@ -2,7 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <vector>
-#include <set>
+#include <map>
 #include <functional>
 #include <streambuf>
 
@@ -17,14 +17,14 @@ extern "C" { int main(int ac, char** av)
     using Letters = unsigned;
     const Letters A = 1 << ('z' - 'a');
     std::vector<Letters> words;
-    std::set<Letters,std::greater<>> sevens;
+    std::map<Letters,int,std::greater<>> sevens;
     Letters word = 0; int len = 0;
     for (std::istreambuf_iterator<char> in(file), e; in != e; ++in) {
         if (*in == '\n') {
             if (len >= 5) {
-                words.push_back(word);
                 if (__builtin_popcountl(word) == 7)
-                    sevens.insert(word);
+                    ++sevens[word];
+                else words.push_back(word);
             }
             word = 0, len = 0;
         } else if (len != -1 && *in >= 'a' && *in <= 'z') {
@@ -33,19 +33,17 @@ extern "C" { int main(int ac, char** av)
         } else { len = -1; }
     }
 
-    for (Letters seven : sevens) {
-        short bias = 0, score[7] = { 0, };
+    for (auto const& sevencount : sevens) {
+        Letters seven = sevencount.first;
+        short score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
-                if (word == seven) {
-                    bias += 3;
-                } else {
-                    Letters rest = seven;
-                    for (int place = 7; --place >= 0; rest &= rest - 1)
-                        if (word & rest & -rest)
-                            ++score[place];
-                }
+                Letters rest = seven;
+                for (int place = 7; --place >= 0; rest &= rest - 1)
+                    if (word & rest & -rest)
+                        ++score[place];
             }
+        const int bias = sevencount.second * 3;
         bool any = false;
         Letters rest = seven;
         char buf[8]; buf[7] = '\n';
