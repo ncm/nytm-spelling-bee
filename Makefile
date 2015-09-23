@@ -2,7 +2,7 @@ SHELL = bash  # to get "for ((...))" syntax
 CXX = g++
 RUSTC = rustc
 STDLIB =
-CXXFLAGS = -O3 $(STDLIB) -g3 -std=c++14 -Wall -march=corei7
+CXXFLAGS = -O2 $(STDLIB) -g3 -std=c++14 -Wall -march=corei7
 RUSTFLAGS = -C opt-level=2 -C target-cpu=corei7 -g
 RUSTMKLIB = --crate-type=staticlib
 
@@ -18,6 +18,7 @@ all: $(PROGRAMS) all.run
 all.run: all.bench
 	./$< | tee $<.out | wc -l
 	for ((i=0;i<80;++i)); do cat out.ref; done | cmp - $<.out
+	@echo OK
 
 clean:; rm -f $(OFILES) $(PROGRAMS) $(BENCHES) *.bench.out
 
@@ -74,3 +75,4 @@ puzzlegen-sm-rs.a: puzzlegen-sm.rs
 .bench.run: 
 	./$< | tee $<.out | wc -l
 	for ((i=0;i<20;++i)); do cat out.ref; done | cmp $<.out -
+	@echo OK

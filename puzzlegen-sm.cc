@@ -6,7 +6,7 @@
 #include <functional>
 #include <streambuf>
 
-extern "C" int main(int ac, char** av)
+extern "C" { int main(int ac, char** av)
 {
     std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];
     std::ifstream fs;
@@ -37,9 +37,9 @@ extern "C" int main(int ac, char** av)
         short bias = 0, score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
-                if (word == seven)
+                if (word == seven) {
                     bias += 3;
-                else {
+                } else {
                     Letters rest = seven;
                     for (int place = 7; --place >= 0; rest &= rest - 1)
                         if (word & rest & -rest)
@@ -59,4 +59,4 @@ extern "C" int main(int ac, char** av)
             std::cout.rdbuf()->sputn(buf, 8);
     }
     return 0;
-}
+}}
