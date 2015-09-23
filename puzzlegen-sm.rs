@@ -20,8 +20,8 @@ const A : Letters = 1 << 25;
         .scan((0 as Letters, 0), |&mut (ref mut word, ref mut len), c|
             Some(match (c as char, *len) {
                 ('\n', -1 ... 4) => { *word = 0; *len = 0; None },
-                (_, -1) => None,
                 ('\n', _) => { let w = *word; *word = 0; *len = 0;  Some(w) },
+                (_, -1) => None,
                 ('a' ... 'z', _) => {
                     *word |= A >> c - ('a' as u8);
                     if word.count_ones() <= 7
@@ -61,6 +61,4 @@ const A : Letters = 1 << 25;
               { sink.write(&out).unwrap(); };
     }
 }
-
-#[cfg(not(main))]
-fn main() { sm_rs_main(); }
+#[cfg(not(main))] fn main() { sm_rs_main(); }
