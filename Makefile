@@ -6,9 +6,9 @@ CXXFLAGS = -O2 $(STDLIB) -g3 -std=c++14 -Wall -march=corei7
 RUSTFLAGS = -C opt-level=2 -C target-cpu=corei7 -g
 RUSTMKLIB = --crate-type=staticlib
 
-OFILES = puzzlegen-cc.o puzzlegen-sm-cc.o puzzlegen-rs.a puzzlegen-sm-rs.a
-PROGRAMS = puzzlegen-cc puzzlegen-sm-cc puzzlegen-rs puzzlegen-sm-rs
-BENCHES = cc.bench sm-cc.bench rs.bench sm-rs.bench all.bench
+OFILES = puzzlegen-str-cc.o puzzlegen-cc.o puzzlegen-str-rs.a puzzlegen-rs.a
+PROGRAMS = puzzlegen-str-cc puzzlegen-cc puzzlegen-str-rs puzzlegen-rs
+BENCHES = str-cc.bench cc.bench str-rs.bench rs.bench all.bench
 
 all: $(PROGRAMS) all.run
 
@@ -25,47 +25,47 @@ clean:; rm -f $(OFILES) $(PROGRAMS) $(BENCHES) *.bench.out
 # 
 # These are actual programs that actually generate, you know, puzzles.
 
+puzzlegen-str-cc: puzzlegen-str.cc
+	$(CXX) $(CXXFLAGS) $< -o $@
+
 puzzlegen-cc: puzzlegen.cc
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-puzzlegen-sm-cc: puzzlegen-sm.cc
-	$(CXX) $(CXXFLAGS) $< -o $@
-
-puzzlegen-rs: puzzlegen.rs
+puzzlegen-str-rs: puzzlegen-str.rs
 	$(RUSTC) $(RUSTFLAGS) $< -o $@
 
-puzzlegen-sm-rs: puzzlegen-sm.rs
+puzzlegen-rs: puzzlegen.rs
 	$(RUSTC) $(RUSTFLAGS) $< -o $@
 
 # bench binaries, run multiple times and report runtime.
 
 all.bench: bench-all.cc $(OFILES)
-	$(CXX) -o $@ -std=c++14 -DCC -DSMCC -DRS -DSMRS $^ -lpthread -ldl
+	$(CXX) -o $@ -std=c++14 -DSTRCC -DCC -DSTRRS -DRS $^ -lpthread -ldl
 
-cc.bench: bench-all.cc puzzlegen-cc.o
+str-cc.bench: bench-all.cc puzzlegen-str-cc.o
 	$(CXX) -o $@ -DCC -std=c++14 -DCC $^
 
-sm-cc.bench: bench-all.cc puzzlegen-sm-cc.o
+cc.bench: bench-all.cc puzzlegen-cc.o
 	$(CXX) -o $@ -DSMCC -std=c++14 -DSMCC $^
 
-rs.bench: bench-all.cc puzzlegen-rs.a
+str-rs.bench: bench-all.cc puzzlegen-str-rs.a
 	$(CXX) -o $@ -std=c++14 -DRS $^ -lpthread -ldl
 
-sm-rs.bench: bench-all.cc puzzlegen-sm-rs.a
+rs.bench: bench-all.cc puzzlegen-rs.a
 	$(CXX) -o $@ -std=c++14 -DSMRS $^ -lpthread -ldl
 
 # objects
 
+puzzlegen-str-cc.o: puzzlegen-str.cc
+	$(CXX) $(CXXFLAGS) -c -Dmain=str_cc_main $< -o $@
+
 puzzlegen-cc.o: puzzlegen.cc
 	$(CXX) $(CXXFLAGS) -c -Dmain=cc_main $< -o $@
 
-puzzlegen-sm-cc.o: puzzlegen-sm.cc
-	$(CXX) $(CXXFLAGS) -c -Dmain=sm_cc_main $< -o $@
-
-puzzlegen-rs.a: puzzlegen.rs
+puzzlegen-str-rs.a: puzzlegen-str.rs
 	$(RUSTC) $(RUSTFLAGS) $(RUSTMKLIB) --cfg main $< -o $@
 
-puzzlegen-sm-rs.a: puzzlegen-sm.rs
+puzzlegen-rs.a: puzzlegen.rs
 	$(RUSTC) $(RUSTFLAGS) $(RUSTMKLIB) --cfg main $< -o $@
 
 #

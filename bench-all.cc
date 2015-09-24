@@ -1,10 +1,10 @@
 #include <iostream>
 #include <sys/time.h>
 
+extern "C" int str_cc_main(int ac, char** av);
 extern "C" int cc_main(int ac, char** av);
-extern "C" int sm_cc_main(int ac, char** av);
+extern "C" int str_rs_main();
 extern "C" int rs_main();
-extern "C" int sm_rs_main();
 
 auto run = [](char const* name, auto f) {
     timeval before, after;
@@ -20,16 +20,16 @@ auto run = [](char const* name, auto f) {
 
 int main(int ac, char** av)
 {
+#ifdef STRCC
+    run("str-cc", [ac,av]() { str_cc_main(ac, av); });
+#endif
 #ifdef CC
     run("cc", [ac,av]() { cc_main(ac, av); });
 #endif
-#ifdef SMCC
-    run("sm-cc", [ac,av]() { sm_cc_main(ac, av); });
+#ifdef STRRS
+    run("str-rs", str_rs_main);
 #endif
 #ifdef RS
     run("rs", rs_main);
-#endif
-#ifdef SMRS
-    run("sm-rs", sm_rs_main);
 #endif
 }
