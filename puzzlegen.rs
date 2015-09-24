@@ -5,7 +5,6 @@ use std::collections::BTreeMap;
 const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
 const A : Letters = 1 << 25;
-const NONE : Letters = 0;
 
 #[no_mangle] pub extern fn rs_main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
@@ -20,12 +19,13 @@ const NONE : Letters = 0;
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
         .filter_map(|line| line.bytes()
-            .scan(NONE, |word, c| if word.count_ones() <= 7 {
-                Some(match c as char {
-                    'a' ... 'z' => { *word |= A >> c - ('a' as u8); *word }
-                    _  => { *word = !NONE; *word }
-                })
-            } else { None }).last())
+            .scan(0 as Letters, |word, c|
+                if word.count_ones() <= 7 {
+                    *word |= match c as char {
+                        'a' ... 'z' => A >> c - ('a' as u8),
+                        _ => !(0 as Letters)
+                    }; Some(*word)
+                } else { None }).last())
         .filter(|&word| word.count_ones() <= 7)
         .filter_map(|word| if word.count_ones() < 7
                 { Some(word) }
