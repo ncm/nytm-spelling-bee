@@ -54,7 +54,7 @@ const A : Letters = 1 << 25;
             .fold((false, seven), |(mut any, rest), (&score, out)| {
                 let a = match score + count * 3
                     { 26 ... 32 => { any = true; 'A' }, _ => 'a' };
-                *out = (a as u8) + (25u32 - rest.trailing_zeros()) as u8;
+                *out = (a as u8) + (25 - rest.trailing_zeros()) as u8;
                 (any, rest & rest - 1)
             });
          if any
