@@ -24,9 +24,9 @@ const A : Letters = 1 << 25;
                 (_, -1) => None,
                 ('a' ... 'z', _) => {
                     *word |= A >> c - ('a' as u8);
-                    if word.count_ones() <= 7
-                          { *len += 1; None }
-                    else { *len = -1; None }
+                    match word.count_ones()
+                        { 0 ... 7 => *len += 1,  _ => *len = -1 };
+                    None
                 },
                 (_, _) => { *len = -1; None }
             })
