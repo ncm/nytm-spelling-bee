@@ -15,7 +15,7 @@ extern "C" { int main(int ac, char** av)
         return std::cerr << "file open failed, " << name << '\n', 1;
 
     using Letters = unsigned;
-    const Letters A = 1 << ('z' - 'a');
+    Letters const A = 1 << ('z' - 'a');
     std::vector<Letters> words;
     std::map<Letters,int,std::greater<>> sevens;
     Letters word = 0; int len = 0;
@@ -34,7 +34,7 @@ extern "C" { int main(int ac, char** av)
     }
 
     for (auto const& sevencount : sevens) {
-        Letters seven = sevencount.first;
+        Letters const seven = sevencount.first;
         short score[7] = { 0, };
         for (Letters word : words)
             if (!(word & ~seven)) {
@@ -43,14 +43,13 @@ extern "C" { int main(int ac, char** av)
                     if (word & rest & -rest)
                         ++score[place];
             }
-        const int bias = sevencount.second * 3;
+        int const bias = sevencount.second * 3;
         bool any = false;
         Letters rest = seven;
         char buf[8]; buf[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
-            const int points = score[place] + bias;
-            const char a = (points >= 26 && points <= 32) ?
-                any = true, 'A' : 'a';
+            int points = score[place] + bias;
+            char a = (points >= 26 && points <= 32) ? any = true, 'A' : 'a';
             buf[place] = a + (25 - __builtin_ctzl(rest));
         }
         if (any)
