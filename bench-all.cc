@@ -9,7 +9,7 @@ extern "C" int rs_main();
 auto run = [](char const* name, auto f) {
     timeval before, after;
     gettimeofday(&before, nullptr);
-    for (int t = 0; t < 20; ++t)
+    for (int t = 0; t < 50; ++t)
         f();
     gettimeofday(&after, nullptr);
 
