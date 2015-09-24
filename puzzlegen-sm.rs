@@ -31,9 +31,9 @@ const A : Letters = 1 << 25;
                 (_, _) => { *len = -1; None }
             })
         ).filter_map(|option| option)
-        .filter_map(|word| if word.count_ones() < 7
-                { Some(word) }
-            else { *sevens.entry(word).or_insert(0) += 1; None })
+        .filter_map(|word| if word.count_ones() == 7
+                { *sevens.entry(word).or_insert(0) += 1; None }
+            else { Some(word) })
         .collect();
 
     let stdout = io::stdout();
@@ -50,10 +50,9 @@ const A : Letters = 1 << 25;
                 scores
             });
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
-        let bias = count * 3;
         let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut any, rest), (&score, out)| {
-                let a = match score + bias
+                let a = match score + count * 3
                     { 26 ... 32 => { any = true; 'A' }, _ => 'a' };
                 *out = (a as u8) + (25u32 - rest.trailing_zeros()) as u8;
                 (any, rest & rest - 1)

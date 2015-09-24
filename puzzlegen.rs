@@ -19,8 +19,8 @@ const NONE : Letters = 0;
     let words : Vec<_> = io::BufReader::new(file).lines()
         .filter_map(|line| line.ok())
         .filter(|line| line.len() >= 5)
-        .filter_map(|line| line.bytes().scan(NONE, |word, c|
-            if word.count_ones() <= 7 {
+        .filter_map(|line| line.bytes()
+            .scan(NONE, |word, c| if word.count_ones() <= 7 {
                 Some(match c as char {
                     'a' ... 'z' => { *word |= A >> c - ('a' as u8); *word }
                     _  => { *word = !NONE; *word }
