@@ -76,5 +76,5 @@ Alternative versions of the programs differ:
   - puzzlegen-bitset.cc -- uses local bitset_set.h iterators
   - puzzlegen-int.cc -- uses unsigned int rather than std::bitset<26>
   - puzzlegen-old.cc -- posted in gcc bug #67153, only version fast on Haswell
-  - puzzlegen.rs     -- in Rust, reading into Vec<u8>
-  - puzzlegen-str.rs -- reading via strings
+  - puzzlegen.rs     -- in Rust, reading byte-by-byte
+  - puzzlegen-str.rs -- likewise, but reading via Vec<u8>, slower
