@@ -1,20 +1,19 @@
-```puzzlegen.cc``` is a simple program in C++14 that generates anagram
-puzzles as found in the New York Times Magazine, that they call
-"Spelling Bee".  These puzzles present a circle of six letters
-around a seventh, central letter, like
+```puzzlegen.cc``` is a simple program in C++14 that generates all
+possible versions of an anagram puzzle as found in the New York Times
+Magazine, that they call "Spelling Bee".  These puzzles present a circle
+of six letters around a seventh, central letter, like
 ```
     M   O
   P   I   S
     T   U
 ```
-The goal is to find common words that use only the letters in the
-set, and that all use the central letter.  Words that use all the
-letters score extra: one point for each lesser word, and three for
-each that uses all seven.  For example, for the letters above,
-"mitosis" scores 1, "optimums" 3.  The program only emits puzzles
-that that it finds have between 26 and 32 points possible, given
-the words in its list.  Typically one should be satisfied to find
-20 points' worth.
+The goal of the puzzle is to find words that use only the letters in the
+set, and that all use the central letter.  Words that use all the letters
+score extra: one point for each lesser word, and three for each that uses
+all seven.  For example, for the letters above, "mitosis" scores 1,
+"optimums" 3.  The program only emits puzzles that that it finds have
+between 26 and 32 points possible, given the words in its list.
+Typically one should be satisfied to find 20 points' worth.
 
 Output is a list of seven-letter sets, like
 ```
@@ -27,8 +26,8 @@ Output is a list of seven-letter sets, like
 ```
 Capital letters in output are candidates for the central letter.
 
-```solve.sh``` is a simpler program that, given such a puzzle, lists
-words found in /usr/share/dict/words that solve the puzzle. An
+```solve.sh``` is a much simpler program that, given such a puzzle,
+lists words found in /usr/share/dict/words that solve the puzzle. An
 excerpt from its output for the puzzle above is,
 ```
   $ ./solve.sh imopstu
@@ -44,19 +43,19 @@ in the command-line argument.)
 ### Internals
 
 ```puzzlegen.cc``` may be more interesting as an example of optimized modern
-C++ coding than as a generator of puzzles.  It uses bits in a 32-bit word,
-via bitset<>, to represent sets of letters, bitwise arithmetic to step
-through the set and qualify words, and new-style for-loops over containers.
-It uses an STL-style container adapter over std::bitset<> to provide a
-conforming iterator usable with the new-style for-loop.
+C++ and Rust coding than as a generator of puzzles.  In C++, it uses bits in
+a 32-bit word, via bitset<>, to represent sets of letters, bitwise arithmetic
+to step through the set and qualify words, and new-style for-loops over
+containers.  The Rust version does almost precisely the same operations,
+but in a functional style that turns out to run quite a bit faster than
+if transcribed straight from the C++.
 
 As important is what it doesn't use.  It doesn't store the actual words it
-reads, as they are not useful.  It uses ```<set>```, not ```<unordered_set>```,
-because (a) with ```set``` it is *exactly* as fast, but (b) produces more-
+reads, as they are not useful.  It uses ```<map>```, not ```<unordered_map>```,
+because (a) with ```map``` it is *exactly* as fast, but (b) produces more-
 pleasingly ordered output.  It makes only one pass through all the candidate
 words for each candidate letter-set.  It discards words on input that cannot
-be solutions.  Early versions used lambda functions that ended up being
-better-placed in the container adapter (although on Haswell that is slower).
+be solutions.
 
 It does depend on a runtime character set with contiguous alphabetic
 characters, and, by default, a ```/usr/share/dict/words``` file in the right

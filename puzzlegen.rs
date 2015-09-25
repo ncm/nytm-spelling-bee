@@ -4,7 +4,6 @@ use std::collections::BTreeMap;
 
 const WORDS_FILE : &'static str = "/usr/share/dict/words";
 type Letters = u32;
-const A : Letters = 1 << 25;
 
 #[no_mangle] pub extern fn rs_main() {
     let name = env::args().nth(1).unwrap_or(String::from(WORDS_FILE));
@@ -23,7 +22,7 @@ const A : Letters = 1 << 25;
                 ('\n', _) => { let w = *word; *word = 0; *len = 0;  Some(w) },
                 (_, -1) => None,
                 ('a' ... 'z', _) => {
-                    *word |= A >> c - ('a' as u8);
+                    *word |= 1 << (25 - (c - ('a' as u8));
                     match word.count_ones()
                         { 0 ... 7 => *len += 1,  _ => *len = -1 };
                     None
