@@ -1,4 +1,4 @@
-```puzzlegen.cc``` is a simple program in C++14 that generates all
+```puzzlegen``` is a simple program in C++14 that generates all
 possible versions of an anagram puzzle as found in the New York Times
 Magazine, that they call "Spelling Bee".  These puzzles present a circle
 of six letters around a seventh, central letter, like
@@ -42,7 +42,7 @@ in the command-line argument.)
 
 ### Internals
 
-```puzzlegen.cc``` may be more interesting as an example of optimized modern
+```puzzlegen``` may be more interesting as an example of optimized modern
 C++ and Rust coding than as a generator of puzzles.  In C++, it uses bits in
 a 32-bit word, via bitset<>, to represent sets of letters, bitwise arithmetic
 to step through the set and qualify words, and new-style for-loops over
@@ -77,4 +77,4 @@ Alternative versions of the programs differ:
   - puzzlegen-int.cc -- uses unsigned int rather than std::bitset<26>
   - puzzlegen-old.cc -- posted in gcc bug #67153, only version fast on Haswell
   - puzzlegen.rs     -- in Rust, reading into Vec<u8>
-  - puzzlegen-sm.rs  -- reading via state machine
+  - puzzlegen-str.rs -- reading via strings
