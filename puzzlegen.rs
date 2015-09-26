@@ -22,7 +22,7 @@ type Letters = u32;
                 ('\n', _) => { let w = *word; *word = 0; *len = 0;  Some(w) },
                 (_, -1) => None,
                 ('a' ... 'z', _) => {
-                    *word |= 1 << (25 - (c - ('a' as u8));
+                    *word |= 1 << (25 - (c - ('a' as u8)));
                     match word.count_ones()
                         { 0 ... 7 => *len += 1,  _ => *len = -1 };
                     None
