@@ -9,7 +9,7 @@ extern "C" int rs_main();
 auto run = [](char const* name, auto f) {
     timeval before, after;
     gettimeofday(&before, nullptr);
-    for (int t = 0; t < 50; ++t)
+    for (int t = 0; t < 200; ++t)
         f();
     gettimeofday(&after, nullptr);
 
@@ -31,5 +31,17 @@ int main(int ac, char** av)
 #endif
 #ifdef RS
     run("rs", rs_main);
+#endif
+#ifdef RS
+    run("rs", rs_main);
+#endif
+#ifdef STRRS
+    run("str-rs", str_rs_main);
+#endif
+#ifdef CC
+    run("cc", [ac,av]() { cc_main(ac, av); });
+#endif
+#ifdef STRCC
+    run("str-cc", [ac,av]() { str_cc_main(ac, av); });
 #endif
 }

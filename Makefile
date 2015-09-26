@@ -18,7 +18,7 @@ all: $(PROGRAMS) all.run
 
 all.run: all.bench
 	./$< | tee $<.out | wc -l
-	for ((i=0;i<100;++i)); do cat out.ref; done | cmp - $<.out
+	for ((i=0;i<400;++i)); do cat out.ref; done | cmp - $<.out
 	@echo OK
 
 clean:; rm -f $(OFILES) $(PROGRAMS) $(BENCHES) *.bench.out
