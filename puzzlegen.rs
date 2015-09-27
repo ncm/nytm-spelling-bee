@@ -22,15 +22,15 @@ use std::collections::BTreeMap;
                        { return Some(Some(w)) }
                 }, 'a' ... 'z' if *len != -1 => {
                    let w = *word | 1 << (25 - (c - ('a' as u8)));
-                   if w.count_ones() <= 7
-                      { *word = w; *len += 1 }
-                   else { *len = -1 }
+                   if w.count_ones() <= 7 {
+                       *word = w; *len += 1
+                   } else { *len = -1 }
                 }, _ =>  { *len = -1 }
             }; Some(None)
         }).filter_map(|option| option).filter_map(|word|
-            if word.count_ones() < 7
-                 { Some(word) }
-            else { *sevens.entry(word).or_insert(0) += 1; None }
+            if word.count_ones() == 7 {
+                *sevens.entry(word).or_insert(0) += 1; None
+            } else { Some(word) }
         ).collect();
 
     let stdout = io::stdout();
