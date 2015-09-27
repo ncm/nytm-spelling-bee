@@ -14,22 +14,24 @@ use std::collections::BTreeMap;
     let mut sevens : BTreeMap<u32,u16> = BTreeMap::new();
     let words : Vec<_> = io::BufReader::new(file).bytes()
         .filter_map(|resultc| resultc.ok())
-        .scan((0u32, 0), |state, c| {
-            let (word, len) = *state;
-            Some(match c as char {
-                '\n' => { *state = (0, 0);
-                          if len >= 5 { Some(word) } else { None } },
-                'a' ... 'z' if len != -1 =>
-                    { let word = word | 1 << (25 - (c - ('a' as u8)));
-                      *state = if word.count_ones() <= 7
-                          { (word, len + 1) } else { (0, -1) }; None },
-                _ => { *state = (0, -1); None }
-            })
-        }).filter_map(|option| option)
-        .filter_map(|word| if word.count_ones() == 7
-                { *sevens.entry(word).or_insert(0) += 1; None }
-            else { Some(word) })
-        .collect();
+        .scan((0u32, 0), |&mut (ref mut word, ref mut len), c| {
+            match c as char {
+                '\n' => {
+                   let (w, l) = (*word, *len); *word = 0; *len = 0;
+                   if l >= 5
+                       { return Some(Some(w)) }
+                }, 'a' ... 'z' if *len != -1 => {
+                   let w = *word | 1 << (25 - (c - ('a' as u8)));
+                   if w.count_ones() <= 7
+                      { *word = w; *len += 1 }
+                   else { *len = -1 }
+                }, _ =>  { *len = -1 }
+            }; Some(None)
+        }).filter_map(|option| option).filter_map(|word|
+            if word.count_ones() < 7
+                 { Some(word) }
+            else { *sevens.entry(word).or_insert(0) += 1; None }
+        ).collect();
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
@@ -53,8 +55,8 @@ use std::collections::BTreeMap;
                 *out = (a as u8) + (25 - rest.trailing_zeros()) as u8;
                 (any, rest & rest - 1)
             });
-         if any
-              { sink.write(&out).unwrap(); };
+        if any
+            { sink.write(&out).unwrap(); };
     }
 }
 #[cfg(not(main))] fn main() { rs_main(); }

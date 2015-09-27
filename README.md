@@ -66,9 +66,7 @@ Haswell than other C++ versions, while all the C++ versions run about the
 same speed on Westmere.  I.e., on Haswell most versions run artifically
 slowly.
 
-The Rust version of the program runs faster than any C++ version, in part,
-apparently, because the compiler recognizes an opportunity to use SIMD
-instructions.
+The Rust version runs almost exactly as fast as the  C++ version.
 
 Alternative versions of the programs differ:
 
