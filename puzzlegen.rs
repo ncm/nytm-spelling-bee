@@ -27,10 +27,10 @@ use std::collections::BTreeMap;
                    } else { *len = -1 }
                 }, _ =>  { *len = -1 }
             }; Some(None)
-        }).filter_map(|option| option).filter_map(|word|
+        }).filter_map(|option| option).filter(|&word|
             if word.count_ones() == 7 {
-                *sevens.entry(word).or_insert(0) += 1; None
-            } else { Some(word) }
+                *sevens.entry(word).or_insert(0) += 1; false
+            } else { true }
         ).collect();
 
     let stdout = io::stdout();
