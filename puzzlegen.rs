@@ -47,10 +47,11 @@ use std::collections::BTreeMap;
                 scores
             });
 
+        let bias = 3 * count;
         let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
         let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut any, rest), (&score, out)| {
-                let a = match score + count * 3
+                let a = match score + bias
                     { 26 ... 32 => { any = true; 'A' }, _ => 'a' };
                 *out = (a as u8) + (25 - rest.trailing_zeros()) as u8;
                 (any, rest & rest - 1)
