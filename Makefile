@@ -2,16 +2,24 @@ SHELL = bash  # to get "for ((...))" syntax
 CXX = g++
 RUSTC = rustc
 STDLIB =
-OPTLEVEL=2
-CXXFLAGS = -O$(OPTLEVEL) $(STDLIB) -g3 -std=c++14 -Wall -march=corei7
-RUSTFLAGS = -C opt-level=$(OPTLEVEL) -C target-cpu=corei7 -g
+CXXFLAGS = -O3 $(STDLIB) -std=c++14 -Wall -march=corei7
+RUSTFLAGS = -C opt-level=2 -C target-cpu=corei7
 RUSTMKLIB = --crate-type=staticlib
+LIBS = -lpthread -ldl
 
 OFILES = puzzlegen-cc.o puzzlegen-rs.a
 PROGRAMS = puzzlegen-cc puzzlegen-rs
 BENCHES = cc.bench rs.bench all.bench
 
 all: $(PROGRAMS) all.run
+
+# google benchmark binaries, https://github.com/google/benchmark
+
+gbench.run: gbench
+	./gbench --color_print=false --benchmark_min_time=1 | grep ........
+
+gbench: gbench.cc puzzlegen-cc.o puzzlegen-rs.a
+	$(CXX) -o gbench -std=c++14 $^ -L/usr/local/lib -lbenchmark $(LIBS)
 
 # "make all.run" benchmarks all versions.
 # you can also (e.g.) "make rs.run" to run just one version
@@ -23,39 +31,39 @@ all.run: all.bench
 
 clean:; rm -f $(OFILES) $(PROGRAMS) $(BENCHES) *.bench.out
 
-# 
+#
 # These are actual programs that actually generate, you know, puzzles.
 
 puzzlegen-cc: puzzlegen.cc
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) -g3 $(CXXFLAGS) $< -o $@
 
 puzzlegen-rs: puzzlegen.rs
-	$(RUSTC) $(RUSTFLAGS) $< -o $@
+	$(RUSTC) --debuginfo=3 $(RUSTFLAGS) $< -o $@
 
-# bench binaries, run multiple times and report runtime.
+# independent bench binaries, run multiple times and report runtime.
 
 all.bench: bench-all.cc $(OFILES)
-	$(CXX) -o $@ -std=c++14 -DCC -DRS $^ -lpthread -ldl
+	$(CXX) -o $@ -std=c++14 -DCC -DRS $^ $(LIBS)
 
 cc.bench: bench-all.cc puzzlegen-cc.o
 	$(CXX) -o $@ -DCC -std=c++14 -DCC $^
 
 rs.bench: bench-all.cc puzzlegen-rs.a
-	$(CXX) -o $@ -std=c++14 -DRS $^ -lpthread -ldl
+	$(CXX) -o $@ -std=c++14 -DRS $^ $(LIBS)
 
 # objects
 
 puzzlegen-cc.o: puzzlegen.cc
-	$(CXX) $(CXXFLAGS) -c -Dmain=cc_main $< -o $@
+	$(CXX) $(CXXFLAGS) -c -g0 -Dmain=cc_main $< -o $@
 
 puzzlegen-rs.a: puzzlegen.rs
-	$(RUSTC) $(RUSTFLAGS) $(RUSTMKLIB) --cfg main $< -o $@
+	$(RUSTC) $(RUSTFLAGS) $(RUSTMKLIB) --debuginfo=0 --cfg main $< -o $@
 
 #
 
 .SUFFIXES:
 .SUFFIXES: .bench .run
-.bench.run: 
+.bench.run:
 	./$< | tee $<.out | wc -l
 	for ((i=0;i<400;++i)); do cat out.ref; done | cmp $<.out -
 	@echo OK
