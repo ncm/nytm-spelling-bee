@@ -37,10 +37,10 @@ extern "C" { int main(int ac, char** av)
         unsigned long const seven = sevencount.first;
         short score[7] = { 0, };
         for (Letters word : words)
-            if (__builtin_expect(!(word.to_ulong() & ~seven), 0)) {
+            if (!(word.to_ulong() & ~seven), 0) {
                 unsigned long rest = seven;
                 for (int place = 7; --place >= 0; rest &= rest - 1)
-                    if (__builtin_expect(word.to_ulong() & rest & -rest, 0))
+                    if (word.to_ulong() & rest & -rest, 0)
                         ++score[place];
             }
         int const bias = sevencount.second * 3;
