@@ -1,4 +1,4 @@
-```puzzlegen``` is a simple program in C++14 that generates all
+```puzzlegen``` is a simple program that generates all
 possible versions of an anagram puzzle as found in the New York Times
 Magazine, that they call "Spelling Bee".  These puzzles present a circle
 of six letters around a seventh, central letter, like
@@ -43,12 +43,12 @@ in the command-line argument.)
 ### Internals
 
 ```puzzlegen``` may be more interesting as an example of optimized modern
-C++ and Rust coding than as a generator of puzzles.  In C++, it uses bits in
+C++14 and Rust coding than as a generator of puzzles.  In C++, it uses bits in
 a 32-bit word, via bitset<>, to represent sets of letters, bitwise arithmetic
 to step through the set and qualify words, and new-style for-loops over
 containers.  The Rust version does almost precisely the same operations,
-but in a functional style that turns out to run quite a bit faster than
-if transcribed straight from the C++.
+but in a functional style that turns out to run a little faster than if
+transcribed straight from the C++.
 
 As important is what it doesn't use.  It doesn't store the actual words it
 reads, as they are not useful.  It uses ```<map>```, not ```<unordered_map>```,
@@ -68,11 +68,14 @@ slowly.
 
 The Rust version runs almost exactly as fast as the  C++ version.
 
-Alternative versions of the programs differ:
+  - puzzlegen.cc     -- fast C++ version
+  - puzzlegen.rs     -- in Rust, reading byte-by-byte
 
-  - puzzlegen.cc     -- fast C++ version (except if built with clang)
+Alternative versions of the programs, found in the variants directory, differ:
+
   - puzzlegen-bitset.cc -- uses local bitset_set.h iterators
   - puzzlegen-int.cc -- uses unsigned int rather than std::bitset<26>
   - puzzlegen-old.cc -- posted in gcc bug #67153, only version fast on Haswell
-  - puzzlegen.rs     -- in Rust, reading byte-by-byte
-  - puzzlegen-str.rs -- likewise, but reading via Vec<u8>, slower
+  - puzzlegen-str.cc -- reads words into std::string
+  - puzzlegen-str.rs -- similarly, reading into a Vec<u8>
+  
