@@ -5,9 +5,8 @@
 #include <vector>
 #include <map>
 #include <functional>
-#include <streambuf>
 
-extern "C" { int main(int ac, char** av)
+extern "C" int main(int ac, char** av)
 {
     std::string const name = (ac == 1) ? "/usr/share/dict/words" : av[1];
     std::ifstream fs;
@@ -56,4 +55,4 @@ extern "C" { int main(int ac, char** av)
             std::cout.rdbuf()->sputn(buf, 8);
     }
     return 0;
-}}
+}
