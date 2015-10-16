@@ -38,7 +38,7 @@ puzzlegen-cc: puzzlegen.cc
 	$(CXX) -g3 $(CXXFLAGS) $< -o $@
 
 puzzlegen-rs: puzzlegen.rs
-	$(RUSTC) -C debuginfo=3 $(RUSTFLAGS) $< -o $@
+	$(RUSTC) -C debuginfo=2 $(RUSTFLAGS) $< -o $@
 
 # independent bench binaries, run multiple times and report runtime.
 
