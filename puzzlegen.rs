@@ -20,12 +20,14 @@ use std::collections::BTreeMap;
                    let (w, l) = (*word, *len); *word = 0; *len = 0;
                    if l >= 5
                        { return Some(Some(w)) }
-                }, 'a' ... 'z' if *len != -1 => {
+                },
+                'a' ... 'z' if *len != -1 => {
                    let w = *word | 1 << (25 - (c - ('a' as u8)));
                    if w.count_ones() <= 7 {
                        *word = w; *len += 1
                    } else { *len = -1 }
-                }, _ =>  { *len = -1 }
+                },
+                _ =>  { *len = -1 }
             }; Some(None)
         }).filter_map(|option| option).filter(|&word|
             if word.count_ones() == 7 {
