@@ -36,7 +36,7 @@ use std::collections::BTreeMap;
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
     for (&seven,&count) in sevens.iter().rev() {
-        let scores = words.iter().map(|&word| word)
+        let scores = words.iter()
             .filter(|&word| word & !seven == 0)
             .fold([0u16;7], |mut scores, word| {
                 scores.iter_mut().fold(seven, |rest, score| {
