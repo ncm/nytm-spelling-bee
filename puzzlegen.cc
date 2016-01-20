@@ -16,7 +16,7 @@ extern "C" int main(int ac, char** av)
         return std::cerr << "file open failed, " << name << '\n', 1;
 
     using Letters = std::bitset<32>;
-    std::vector<Letters> words;
+    std::vector<unsigned> words;
     std::map<unsigned,int,std::greater<>> sevens;
     Letters word; int len = 0;
     for (std::istreambuf_iterator<char> in(file), e; in != e; ++in)
@@ -24,7 +24,7 @@ extern "C" int main(int ac, char** av)
             if (len >= 5) {
                 if (word.count() == 7) {
                     ++sevens[word.to_ulong()];
-                } else words.push_back(word);
+                } else words.push_back(word.to_ulong());
             }
             word = 0, len = 0;
         } else if (len != -1 && *in >= 'a' && *in <= 'z') {
@@ -35,11 +35,11 @@ extern "C" int main(int ac, char** av)
     for (auto sevencount : sevens) {
         unsigned const seven = sevencount.first;
         short scores[7] = { 0, };
-        for (Letters word : words)
-            if (!(word.to_ulong() & ~seven)) {
+        for (unsigned word : words)
+            if (!(word & ~seven)) {
                 unsigned rest = seven;
                 for (int place = 7; --place >= 0; rest &= rest - 1)
-                    if (word.to_ulong() & rest & -rest)
+                    if (word & rest & -rest)
                         ++scores[place];
             }
 
