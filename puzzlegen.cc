@@ -5,13 +5,13 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <string>
 
 extern "C" int main(int ac, char** av)
 {
-    char const* name = (ac > 1) ? av[1] : "/usr/share/dict/words";
+    std::string name = (ac > 1) ? av[1] : "/usr/share/dict/words";
     std::ifstream fs;
-    std::istream& file = (name[0] == '-' && name[1] == '\0') ?
-        std::cin : (fs.open(name), fs);
+    std::istream& file = name == "-" ? std::cin : (fs.open(name), fs);
     if (!file)
         return std::cerr << "file open failed, " << name << '\n', 1;
 
