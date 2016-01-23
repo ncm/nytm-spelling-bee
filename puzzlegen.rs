@@ -8,12 +8,13 @@ use std::collections::BTreeMap;
     let stdin = io::stdin();
     let file : Box<io::Read> = match &*name {
         "-" => Box::new(stdin.lock()),
-        _   => Box::new(fs::File::open(name).ok().expect("file open failed"))
+        _   => Box::new(fs::File::open(name).expect("file open failed"))
     };
 
-    let mut sevens : BTreeMap<u32,u16> = BTreeMap::new();
+    // let mut sevens : BTreeMap<u32,u16> = BTreeMap::new();
+    let mut sevens = BTreeMap::new();
     let words : Vec<_> = io::BufReader::new(file).bytes()
-        .filter_map(|resultc| resultc.ok())
+        .filter_map(Result::ok)
         .scan((0u32, 0), |&mut (ref mut word, ref mut len), c| {
             match c as char {
                 '\n' => {
@@ -22,7 +23,7 @@ use std::collections::BTreeMap;
                        { return Some(Some(w)) }
                 },
                 'a' ... 'z' if *len != -1 => {
-                   let w = *word | 1 << (25 - (c - ('a' as u8)));
+                   let w = *word | 1 << (25 - (c - b'a'));
                    if w.count_ones() <= 7 {
                        *word = w; *len += 1
                    } else { *len = -1 }
@@ -49,7 +50,7 @@ use std::collections::BTreeMap;
                 scores
             });
 
-        let mut out = [0, 0, 0, 0, 0, 0, 0, '\n' as u8];
+        let mut out = *b".......\n";
         let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut any, rest), (&score, out)| {
                 let a = match score + 3 * count
