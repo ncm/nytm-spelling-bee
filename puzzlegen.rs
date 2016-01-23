@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
     let stdin = io::stdin();
     let file : Box<io::Read> = match &*name {
         "-" => Box::new(stdin.lock()),
-        _   => Box::new(fs::File::open(name).expect("file open failed"))
+        _   => Box::new(fs::File::open(name).ok().expect("file open failed"))
     };
 
     // let mut sevens : BTreeMap<u32,u16> = BTreeMap::new();
