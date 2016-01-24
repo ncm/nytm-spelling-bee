@@ -10,7 +10,7 @@ use std::{fs,io,env,process};
             Ok(f) => Box::new(f),
             Err(x) => {
                writeln!(io::stderr(), "{}: \"{}\"", x, filename).unwrap();
-               process::exit(1)
+               process::exit(1);
             }
         }
     };

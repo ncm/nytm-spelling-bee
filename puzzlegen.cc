@@ -6,9 +6,9 @@
 #include <string>
 #include <algorithm>
 
-extern "C" int main(int ac, char** av)
+extern "C" int main(int argc, char** argv)
 {
-    std::string name = (ac > 1) ? av[1] : "/usr/share/dict/words";
+    std::string name = (argc > 1) ? argv[1] : "/usr/share/dict/words";
     std::ifstream fs;
     std::istream& file = name == "-" ? std::cin : (fs.open(name), fs);
     if (!file)
