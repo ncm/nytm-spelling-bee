@@ -17,7 +17,7 @@ extern "C" int main(int ac, char** av)
     std::vector<unsigned> words;
     std::vector<std::pair<unsigned,short>> sevens;
     std::bitset<32> word; int len = 0;
-    for (std::istreambuf_iterator<char> in(file), e; in != e; ++in)
+    for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
         if (*in == '\n') {
             if (len >= 5) {
                 if (word.count() == 7) {
@@ -29,8 +29,9 @@ extern "C" int main(int ac, char** av)
             word.set(25 - (*in - 'a'));
             len = (word.count() <= 7) ? len + 1 : -1;
         } else { len = -1; }
-    std::sort(sevens.begin(), sevens.end(), [](auto& a, auto& b)
-        { return a.first > b.first; });
+    }
+    std::sort(sevens.begin(), sevens.end(),
+        [](auto& a, auto& b) { return a.first > b.first; });
     auto p = sevens.begin();
     for (auto s = p; s != sevens.end(); ++p->second, ++s)
         if (s->first != p->first)

@@ -2,13 +2,13 @@ use std::io::prelude::*;
 use std::{fs,io,env,process};
 
 #[no_mangle] pub extern fn rs_main() {
-    let filename = env::args().nth(1).unwrap_or(
-        String::from("/usr/share/dict/words"));
-    let stdin = io::stdin();
+    let (stdin, filename) = (io::stdin(),
+        env::args().nth(1).unwrap_or(String::from("/usr/share/dict/words")));
     let file : Box<io::Read> = match &*filename {
         "-" => Box::new(stdin.lock()),
         _ => match fs::File::open(&*filename) {
-            Ok(f) => Box::new(f), Err(x) => {
+            Ok(f) => Box::new(f),
+            Err(x) => {
                writeln!(io::stderr(), "{}: \"{}\"", x, filename).unwrap();
                process::exit(1)
             }
@@ -42,7 +42,8 @@ use std::{fs,io,env,process};
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
     for &(seven, count) in sevens.iter().rev() {
-        let scores = words.iter().filter(|&word| word & !seven == 0)
+        let scores = words.iter()
+            .filter(|&word| word & !seven == 0)
             .fold([0u16;7], |mut scores, word| {
                 scores.iter_mut().fold(seven, |rest, score| {
                    if word & rest & !(rest - 1) != 0
