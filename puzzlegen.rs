@@ -29,7 +29,7 @@ use std::{fs, io, env, process};
         } else { skip = true }
     }
 
-    sevens.sort_by(|a, b| b.cmp(a));  // why is b.1.cmp(&a.1) very very slow?
+    sevens.sort_by(|a, b| b.0.cmp(&a.0));
     let mut place = 0;
     for i in 0..sevens.len() {
         if sevens[i].0 != sevens[place].0
