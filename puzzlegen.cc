@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <functional>
 
 extern "C" int main(int argc, char** argv)
 {
@@ -17,26 +16,28 @@ extern "C" int main(int argc, char** argv)
 
     std::vector<unsigned> words; words.reserve(1<<15);
     std::vector<std::pair<unsigned,short>> sevens; sevens.reserve(1<<15);
-    std::bitset<32> word; int len = 0;
+    std::bitset<32> word; int len = 0; bool skip = false;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
         if (*in == '\n') {
-            if (len >= 5) {
+            if (!skip && len >= 5) {
                 if (word.count() == 7) {
                     sevens.emplace_back(word.to_ulong(), 0);
                 } else words.push_back(word.to_ulong());
             }
-            word = 0, len = 0;
-        } else if (len != -1 && *in >= 'a' && *in <= 'z') {
+            word = 0, len = 0, skip = false;
+        } else if (!skip && *in >= 'a' && *in <= 'z') {
             word.set(25 - (*in - 'a'));
-            len = (word.count() <= 7) ? len + 1 : -1;
-        } else { len = -1; }
+            if (word.count() <= 7) ++len; else skip = true;
+        } else { skip = true; }
     }
-    std::sort(sevens.begin(), sevens.end(), std::greater<>());
-    auto p = sevens.begin();
-    for (auto s = p; s != sevens.end(); ++p->second, ++s)
-        if (s->first != p->first)
-            *++p = *s;
-    sevens.resize(p + 1 - sevens.begin());
+
+    std::sort(sevens.begin(), sevens.end(),
+        [](auto a, auto b) { return a.first > b.first; });
+    size_t p = 0;
+    for (size_t s = 0, e = sevens.size(); s != e; ++sevens[p].second, ++s)
+        if (sevens[s].first != sevens[p].first)
+            sevens[++p] = sevens[s];
+    sevens.resize(p + 1);
 
     for (auto sevencount : sevens) {
         unsigned const seven = sevencount.first;

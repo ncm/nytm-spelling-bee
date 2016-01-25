@@ -2,33 +2,34 @@ use std::io::prelude::*;
 use std::{fs, io, env, process};
 
 #[no_mangle] pub extern fn rs_main() {
-    let (stdin, filename) = (io::stdin(),
-        env::args().nth(1).unwrap_or(String::from("/usr/share/dict/words")));
-    let file: Box<Read> = match &filename[..] {
+    let fname = env::args().nth(1).unwrap_or("/usr/share/dict/words".into());
+    let stdin = io::stdin();
+    let file: Box<Read> = match &fname[..] {
         "-" => Box::new(stdin.lock()),
-        _ => Box::new(fs::File::open(&filename).unwrap_or_else(|err| -> _ {
-                 writeln!(io::stderr(), "{}: \"{}\"", err, filename).unwrap();
+        _ => Box::new(fs::File::open(&fname).unwrap_or_else(|err| {
+                 writeln!(io::stderr(), "{}: \"{}\"", err, fname).unwrap();
                  process::exit(1);
              }))
     };
 
     let mut words = Vec::with_capacity(1 << 15);
     let mut sevens = Vec::with_capacity(1 << 16);
-    let (mut word, mut len) = (0u32, 0);
+    let (mut word, mut len, mut skip) = (0u32, 0, false);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
         if c == b'\n' {
-            if len >= 5 {
+            if !skip && len >= 5 {
                 if word.count_ones() == 7 {
                         sevens.push((word, 0))
                 } else { words.push(word) }
             }
-            word = 0; len = 0;
-        } else if len != -1 && c >= b'a' && c <= b'z' {
+            word = 0; len = 0; skip = false;
+        } else if !skip && c >= b'a' && c <= b'z' {
             word |= 1 << (25 - (c - b'a'));
-            len = if word.count_ones() <= 7 { len + 1 } else { -1 }
-        } else { len = -1 }
+            if word.count_ones() <= 7 { len += 1 } else { skip = true }
+        } else { skip = true }
     }
-    sevens.sort_by(|a,b| b.cmp(a));
+
+    sevens.sort_by(|a, b| b.cmp(a));  // why is b.1.cmp(&a.1) very very slow?
     let mut place = 0;
     for i in 0..sevens.len() {
         if sevens[i].0 != sevens[place].0
@@ -50,12 +51,13 @@ use std::{fs, io, env, process};
                 });
                 scores
             });
+
         let mut out = *b".......\n";
         let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
             .fold((false, seven), |(mut any, rest), (&score, outc)| {
                 let a = match score + 3 * count
-                    { 26 ... 32 => { any = true; 'A' }, _ => 'a' };
-                *outc = a as u8 + (25 - rest.trailing_zeros()) as u8;
+                    { 26 ... 32 => { any = true; b'A' }, _ => b'a' };
+                *outc = a + (25 - rest.trailing_zeros()) as u8;
                 (any, rest & rest - 1)
             });
         if any
