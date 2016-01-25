@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <functional>
 
 extern "C" int main(int argc, char** argv)
 {
@@ -14,8 +15,8 @@ extern "C" int main(int argc, char** argv)
     if (!file)
         return std::cerr << "file open failed, \"" << name << "\"\n", 1;
 
-    std::vector<unsigned> words;
-    std::vector<std::pair<unsigned,short>> sevens;
+    std::vector<unsigned> words; words.reserve(1<<15);
+    std::vector<std::pair<unsigned,short>> sevens; sevens.reserve(1<<15);
     std::bitset<32> word; int len = 0;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
         if (*in == '\n') {
@@ -30,8 +31,7 @@ extern "C" int main(int argc, char** argv)
             len = (word.count() <= 7) ? len + 1 : -1;
         } else { len = -1; }
     }
-    std::sort(sevens.begin(), sevens.end(),
-        [](auto& a, auto& b) { return a.first > b.first; });
+    std::sort(sevens.begin(), sevens.end(), std::greater<>());
     auto p = sevens.begin();
     for (auto s = p; s != sevens.end(); ++p->second, ++s)
         if (s->first != p->first)

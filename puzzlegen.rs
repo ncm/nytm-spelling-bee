@@ -1,27 +1,25 @@
 use std::io::prelude::*;
-use std::{fs,io,env,process};
+use std::{fs, io, env, process};
 
 #[no_mangle] pub extern fn rs_main() {
     let (stdin, filename) = (io::stdin(),
         env::args().nth(1).unwrap_or(String::from("/usr/share/dict/words")));
-    let file : Box<io::Read> = match &*filename {
+    let file: Box<Read> = match &filename[..] {
         "-" => Box::new(stdin.lock()),
-        _ => match fs::File::open(&*filename) {
-            Ok(f) => Box::new(f),
-            Err(x) => {
-               writeln!(io::stderr(), "{}: \"{}\"", x, filename).unwrap();
-               process::exit(1);
-            }
-        }
+        _ => Box::new(fs::File::open(&filename).unwrap_or_else(|err| -> _ {
+                 writeln!(io::stderr(), "{}: \"{}\"", err, filename).unwrap();
+                 process::exit(1);
+             }))
     };
 
-    let (mut sevens, mut words) = (Vec::new(), Vec::new());
+    let mut words = Vec::with_capacity(1 << 15);
+    let mut sevens = Vec::with_capacity(1 << 16);
     let (mut word, mut len) = (0u32, 0);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
         if c == b'\n' {
             if len >= 5 {
                 if word.count_ones() == 7 {
-                        sevens.push(word)
+                        sevens.push((word, 0))
                 } else { words.push(word) }
             }
             word = 0; len = 0;
@@ -30,18 +28,18 @@ use std::{fs,io,env,process};
             len = if word.count_ones() <= 7 { len + 1 } else { -1 }
         } else { len = -1 }
     }
-    sevens.sort();
-    let sevens : Vec<_> = sevens.iter().skip(1).chain([0].iter())
-        .scan((sevens[0], 1u16), |&mut (ref mut prev, ref mut count), &seven|
-            if seven != *prev {
-               let pair = (*prev, *count); *prev = seven; *count = 1;
-               Some(Some(pair))
-            } else { *count += 1; Some(None) }
-         ).filter_map(|pair| pair).collect();
+    sevens.sort_by(|a,b| b.cmp(a));
+    let mut place = 0;
+    for i in 0..sevens.len() {
+        if sevens[i].0 != sevens[place].0
+            { place += 1; sevens[place] = sevens[i]; }
+        sevens[place].1 += 1;
+    }
+    sevens.resize(place + 1, (0,0));
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
-    for &(seven, count) in sevens.iter().rev() {
+    for &(seven, count) in sevens.iter() {
         let scores = words.iter()
             .filter(|&word| word & !seven == 0)
             .fold([0u16;7], |mut scores, word| {
