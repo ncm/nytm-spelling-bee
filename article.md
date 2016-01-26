@@ -1,15 +1,17 @@
 
 # Rust vs. C++: Fine-grained Performance
-#### by Nathan Myers `<ncm@cantrip.org>`
+| by Nathan Myers `<ncm@cantrip.org>`
+| <http://github.com/ncm/nytm-spelling-bee>
+| Published: 2016-01-25
+| Last Edit: 2016-01-26
 
 If Rust is to take on work previously reserved to C++, we need to know
 how well it does what C++ does best. What's fast, what's slow? What's
 harder to do, what's easier?  I wouldn't know how to look up answers for
 those questions, but I can write programs.
 
-I had a C++ program that was just the right length to experiment
-with^[<http://github.com/ncm/nytm-spelling-bee/tree/master>] -- one
-printed page -- and that did nothing tricky to express in an unfamilar
+I had a C++ program that was just the right length to experiment with --
+one printed page -- and that did nothing tricky to express in an unfamilar
 language. (It generates all possible versions of a puzzle called
 "Spelling Bee" found in the *New York Times Magazine*.) I began by
 transcribing the program straight across to equivalent Rust code.
@@ -376,3 +378,8 @@ to keep moving fast just to keep up.  While Rust could "jump the shark"
 any time, thus far there's every reason to expect to see, ten years
 on, recruiters advertising for warm bodies with ten years' production
 experience coding Rust.
+
+[Thanks to Steve Klabnik, `eddyb`, `leonardo`, `huon`, `comex`, and
+`marcianix` for major improvements to the code and to the article.
+The mistakes remain mine, all mine.]
+
