@@ -24,7 +24,7 @@ extern "C" int main(int argc, char** argv)
                     sevens.emplace_back(word.to_ulong(), 0);
                 } else words.push_back(word.to_ulong());
             }
-            word = 0, len = 0, skip = false;
+            word = len = skip = false;
         } else if (!skip && *in >= 'a' && *in <= 'z') {
             word.set(25 - (*in - 'a'));
             if (word.count() <= 7) ++len; else skip = true;
@@ -33,11 +33,12 @@ extern "C" int main(int argc, char** argv)
 
     std::sort(sevens.begin(), sevens.end(),
         [](auto a, auto b) { return a.first > b.first; });
-    size_t p = 0;
-    for (size_t s = 0, e = sevens.size(); s != e; ++sevens[p].second, ++s)
-        if (sevens[s].first != sevens[p].first)
-            sevens[++p] = sevens[s];
-    sevens.resize(p + 1);
+    size_t place = 0;
+    for (auto pair : sevens)
+        if (pair.first != sevens[place].first)
+            pair.second = 1, sevens[++place] = pair;
+        else sevens[place].second++;
+    sevens.resize(place + 1);
 
     for (auto sevencount : sevens) {
         unsigned const seven = sevencount.first;

@@ -6,6 +6,7 @@ CXXFLAGS = -O3 $(STDLIB) -std=c++14 -Wall -march=corei7
 RUSTFLAGS = -C opt-level=2 -C target-cpu=corei7
 RUSTMKLIB = --crate-type=staticlib
 LIBS = -lpthread -ldl
+T=1
 
 OFILES = puzzlegen-cc.o puzzlegen-rs.a
 PROGRAMS = puzzlegen-cc puzzlegen-rs
@@ -16,7 +17,7 @@ all: $(PROGRAMS) all.run
 # google benchmark binaries, https://github.com/google/benchmark
 
 gbench.run: gbench
-	./gbench --color_print=false --benchmark_min_time=1 | grep ........
+	./gbench --color_print=false --benchmark_min_time=$(T) | grep ........
 
 gbench: gbench.cc puzzlegen-cc.o puzzlegen-rs.a
 	$(CXX) -o gbench -std=c++14 $^ -L/usr/local/lib -lbenchmark $(LIBS)
