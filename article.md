@@ -243,7 +243,7 @@ Rust's convenience operations for booleans, by the way, are curiously
 neglected, vs. `Result` and `Option`.  Some code would read better if
 I could write something like:
 ```rust
-    return is(c).then_some(f)
+    return is(c).then_some(f(c))
 ```
 instead of
 ```
