@@ -1,10 +1,12 @@
+---
+title: "Rust vs. C++: Fine-grained Performance"
+author: "Nathan Myers <ncm@cantrip.org>"
+date: 2016-01-25
+lang: en
+...
 
-# Rust vs. C++: Fine-grained Performance
-| Reply to: Nathan Myers `<ncm@cantrip.org>`
-| Git: <http://github.com/ncm/nytm-spelling-bee>
+| Github: <http://github.com/ncm/nytm-spelling-bee>
 | Reddit: <https://redd.it/42qc78>
-| Published: 2016-01-25
-| Last Edit: 2016-01-26
 
 If Rust is to take on work previously reserved to C++, we need to know
 how well it does what C++ does best. What's fast, what's slow? What's

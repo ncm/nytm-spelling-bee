@@ -70,4 +70,4 @@ puzzlegen-rs.a: puzzlegen.rs
 	@echo OK
 
 article.html: article.md
-	pandoc -s --smart article.md -o article.html
+	pandoc -s --smart --template template.html article.md -o article.html
