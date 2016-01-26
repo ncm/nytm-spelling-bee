@@ -88,7 +88,7 @@ fn main() {
     let stdin = io::stdin();
     let file: Box<Read> = match &fname[..] {
         "-" => Box::new(stdin.lock()),
-        _ => Box::new(fs::File::open(&name).unwrap_or_else(|err| {
+        _ => Box::new(fs::File::open(&fname).unwrap_or_else(|err| {
                  writeln!(io::stderr(), "{}: \"{}\"", err, fname).unwrap();
                  process::exit(1);
              }))
