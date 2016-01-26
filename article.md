@@ -241,13 +241,13 @@ of run time. Using `<map>` or `BTreeMap`, respectively, would make this
 last fragment unnecessary, in exchange for 3% more total run time.
 
 Rust's convenience operations for booleans, by the way, are curiously
-neglected, vs. `Result` and `Option`.  Some code would read better if
-I could write something like:
+neglected, vs. `Result` and `Option`.  For example, some code would read
+better if I could write something like:
 ```rust
     return is(c).then_some(f(c))
 ```
 instead of
-```
+```rust
     return is(c) { Some(f(c)) } else { None }
 ```
 The body of `then_some` is just a one-liner, but to be useful it needs
