@@ -99,7 +99,7 @@ coding Rust would let a toy program like this report usage errors by
 "panicking", although that produces very ugly output.  Rust does make
 it hard to accidentally ignore an I/O error result, which is good so
 long as people don't get used to deliberately ignoring them; but in
-Rust, ignoring them takes more work.
+Rust, ignoring errors takes more work.
 
 Both programs take an optional file name on the command line, and can
 read from `stdin`, which is convenient for testing. On standard Linux
@@ -222,15 +222,18 @@ And Rust:
 ```rust
     sevens.sort_by(|a, b| b.0.cmp(&a.0));
     let mut place = 0;
-    for &pair in sevens.iter() {
-        if pair.0 != sevens[place].0
-            { pair.1 = 1; place += 1; sevens[place] = pair; }
-        else sevens[place].1 += 1;
+    for i in 0..sevens.len() {
+        if sevens[i].0 != sevens[place].0
+            { place += 1; sevens[place] = sevens[i]; }
+        sevens[place].1 += 1;
     }
     sevens.resize(place + 1, (0,0));
 ```
 
-These are very close to even.  
+These are very close to even. In Rust, when working with two elements
+of the same vector, indexing is more comfortable.  One hopes that the
+optimizer can see that `place` cannot exceed `i`, so no bounds checking
+is needed.
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, would make this
@@ -239,13 +242,15 @@ last fragment unnecessary, in exchange for 3% more total run time.
 Rust's convenience operations for booleans, by the way, are curiously
 neglected, vs. `Result` and `Option`.  Some code would read better if
 I could write something like:
-
+```rust
+    return is(c).then_some(f)
 ```
-    ).filter_map(|c|, is(c).then_some(|| f(c))). ...
+instead of
 ```
-
-Code for `then_some` is just a one-liner, but to be useful it needs to
-be standard.
+    return is(c) { Some(f(c)) } else { None }
+```
+The body of `then_some` is just a one-liner, but to be useful it needs
+to be standard.
 
 The main loop is presented below, in two phases.  The first half is where
 the program spends most of its time.
