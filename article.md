@@ -201,6 +201,9 @@ but not
 ```
     (word, len, skip) = (0, 0, false);
 ```
+Obviously the present syntax doesn't allow it, but syntax is not physics,
+syntax is something we create in service of usefulness.  Surprising
+syntactic restrictions make the language more complex for users.
 
 Next, we need to sort the collection of seven-different-letter words,
 and count duplicates.
