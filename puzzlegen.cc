@@ -38,7 +38,7 @@ extern "C" int main(int argc, char** argv)
         if (pair.first != sevens[place].first)
             pair.second = 1, sevens[++place] = pair;
         else sevens[place].second++;
-    sevens.resize(place + 1);
+    if (!sevens.empty()) sevens.resize(place + 1);
 
     for (auto sevencount : sevens) {
         unsigned const seven = sevencount.first;

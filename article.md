@@ -218,7 +218,7 @@ C++:
         if (pair.first != sevens[place].first)
             pair.second = 1, sevens[++place] = pair;
         else sevens[place].second++;
-    sevens.resize(place + 1);
+    if (!sevens.empty()) sevens.resize(place + 1);
 ```
 
 And Rust:
@@ -231,7 +231,7 @@ And Rust:
             { place += 1; sevens[place] = sevens[i]; }
         sevens[place].1 += 1;
     }
-    sevens.resize(place + 1, (0,0));
+    if !sevens.is_empty() { sevens.resize(place + 1, (0,0)) }
 ```
 
 These are very close to even. In Rust, when working with two elements

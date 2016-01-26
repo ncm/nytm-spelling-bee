@@ -36,7 +36,7 @@ use std::{fs, io, env, process};
             { place += 1; sevens[place] = sevens[i]; }
         sevens[place].1 += 1;
     }
-    sevens.resize(place + 1, (0,0));
+    if !sevens.is_empty() { sevens.resize(place + 1, (0,0)) }
 
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
