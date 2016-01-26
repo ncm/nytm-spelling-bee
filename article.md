@@ -1,7 +1,8 @@
 
 # Rust vs. C++: Fine-grained Performance
-| by Nathan Myers `<ncm@cantrip.org>`
-| <http://github.com/ncm/nytm-spelling-bee>
+| Reply to: Nathan Myers `<ncm@cantrip.org>`
+| Git: <http://github.com/ncm/nytm-spelling-bee>
+| Reddit: <https://redd.it/42qc78>
 | Published: 2016-01-25
 | Last Edit: 2016-01-26
 
