@@ -12,7 +12,7 @@ OFILES = puzzlegen-cc.o puzzlegen-rs.a
 PROGRAMS = puzzlegen-cc puzzlegen-rs
 BENCHES = cc.bench rs.bench all.bench
 
-all: $(PROGRAMS) all.run
+all: $(PROGRAMS) all.run article.html
 
 # google benchmark binaries, https://github.com/google/benchmark
 
@@ -68,3 +68,6 @@ puzzlegen-rs.a: puzzlegen.rs
 	./$< | tee $<.out | wc -l
 	for ((i=0;i<400;++i)); do cat out.ref; done | cmp $<.out -
 	@echo OK
+
+article.html: article.md
+	pandoc -s --smart article.md -o article.html
