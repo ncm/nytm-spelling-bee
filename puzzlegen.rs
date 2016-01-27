@@ -13,7 +13,7 @@ use std::{fs, io, env, process};
     };
 
     let mut words = Vec::with_capacity(1 << 15);
-    let mut sevens = Vec::with_capacity(1 << 16);
+    let mut sevens = Vec::with_capacity(1 << 14);
     let (mut word, mut len, mut skip) = (0u32, 0, false);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
         if c == b'\n' {
@@ -43,7 +43,7 @@ use std::{fs, io, env, process};
     for &(seven, count) in sevens.iter() {
         let scores = words.iter()
             .filter(|&word| word & !seven == 0)
-            .fold([0u16;7], |mut scores, word| {
+            .fold([0;7], |mut scores, word| {
                 scores.iter_mut().fold(seven, |rest, score| {
                    if word & rest & !(rest - 1) != 0
                        { *score += 1 }

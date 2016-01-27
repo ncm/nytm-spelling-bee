@@ -15,7 +15,7 @@ extern "C" int main(int argc, char** argv)
         return std::cerr << "file open failed, \"" << name << "\"\n", 1;
 
     std::vector<unsigned> words; words.reserve(1<<15);
-    std::vector<std::pair<unsigned,short>> sevens; sevens.reserve(1<<15);
+    std::vector<std::pair<unsigned,int>> sevens; sevens.reserve(1<<14);
     std::bitset<32> word; int len = 0; bool skip = false;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
         if (*in == '\n') {
@@ -43,7 +43,7 @@ extern "C" int main(int argc, char** argv)
 
     for (auto sevencount : sevens) {
         unsigned const seven = sevencount.first;
-        short scores[7] = { 0, };
+        int scores[7] = { 0, };
         for (unsigned word : words)
             if (!(word & ~seven)) {
                 unsigned rest = seven;

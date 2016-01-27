@@ -4,7 +4,7 @@
 | Git: <http://github.com/ncm/nytm-spelling-bee>
 | Reddit: <https://redd.it/42qc78>
 | Published: 2016-01-25
-| Last Edit: 2016-01-26
+| Last Edit: 2016-01-27
 
 If Rust is to take on work previously reserved to C++, we need to know
 how well it does what C++ does best. What's fast, what's slow? What's
@@ -121,7 +121,7 @@ C++:
 
 ```cpp
     std::vector<unsigned> words; words.reserve(1<<15);
-    std::vector<std::pair<unsigned,short>> sevens; sevens.reserve(1<<15);
+    std::vector<std::pair<unsigned,int>> sevens; sevens.reserve(1<<14);
     std::bitset<32> word; int len = 0; bool skip = false;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
 ```
@@ -130,7 +130,7 @@ Rust:
 
 ```rust
     let mut words = Vec::with_capacity(1 << 15);
-    let mut sevens = Vec::with_capacity(1 << 16);
+    let mut sevens = Vec::with_capacity(1 << 14);
     let (mut word, mut len, mut skip) = (0u32, 0, false);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
 ```
@@ -265,7 +265,7 @@ C++:
 ```cpp
    for (auto sevencount : sevens) {
         unsigned const seven = sevencount.first;
-        short scores[7] = { 0, };
+        int scores[7] = { 0, };
         for (unsigned word : words)
             if (!(word & ~seven)) {
                 unsigned rest = seven;
@@ -283,7 +283,7 @@ And Rust:
     for (&seven, &count) in sevens.iter() {
         let scores = words.iter()
             .filter(|&word| word & !seven == 0)
-            .fold([0u16;7], |mut scores, word| {
+            .fold([0;7], |mut scores, word| {
                 scores.iter_mut().fold(seven, |rest, score| {
                    if word & rest & !(rest - 1) != 0
                        { *score += 1 }
@@ -304,6 +304,10 @@ program spends more time than anywhere else.  The "`fold()`" with its
 than the equivalent loop with outer-scope state variables.  The two
 nested "`fold()`" calls, as with "`collect()`" above, drive the lazy
 iterators to completion.
+
+Curiously, just changing `scores` to an array of 16-bit values slows
+down the C++ program by quite a large amount -- almost 10% in some
+tests.  The Rust program is also affected, but less so.
 
 The second phase does output based on the scores accumulated above.
 
@@ -373,12 +377,12 @@ it's fixed in Broadwell or Skylake.
 
 Rust has some rough edges, but coding in it was kind of fun. As with
 C++, if a Rust program compiles at all, it generally works, more or
-less. Rust's support for generics is improving, but is still well short
-of what a Rusty STL would need. The compiler was slow, but they're
-working hard on that, and I believe its speed will be unremarkable by
-this time next year. (I could forgive its slowness if it kept its
-opinions on redundant parentheses to itself.)  Rust's iterator 
-primitives string together nicely.
+less, but perhaps more. Rust's support for generics is improving, but
+is still well short of what a Rusty STL would need. The compiler was
+slow, but they're working hard on that, and I believe its speed will
+be unremarkable by this time next year. (I could forgive its slowness
+if it kept its opinions on redundant parentheses to itself.)  Rust's
+iterator primitives string together nicely.
 
 It is a signal achievement to match C++ in low-level performance and
 brevity while surpassing it in safety, with reasonable prospects to match
@@ -393,3 +397,7 @@ experience coding Rust.
 `marcianix` for major improvements to the code and to the article.
 The mistakes remain mine, all mine.]
 
+[Material alterations:
+  1. Examples for `then_some` improved
+  2. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
+]
