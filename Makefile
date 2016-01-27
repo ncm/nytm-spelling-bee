@@ -3,7 +3,7 @@ CXX = g++
 RUSTC = rustc
 STDLIB =
 CXXFLAGS = -O3 $(STDLIB) -std=c++14 -Wall -march=corei7
-RUSTFLAGS = -C opt-level=2 -C target-cpu=corei7
+RUSTFLAGS = -C opt-level=3 -C target-cpu=corei7
 RUSTMKLIB = --crate-type=staticlib
 LIBS = -lpthread -ldl
 T=1
