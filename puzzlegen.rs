@@ -32,9 +32,9 @@ use std::{fs, io, env, process};
     sevens.sort_by(|a, b| b.0.cmp(&a.0));
     let mut place = 0;
     for i in 0..sevens.len() {
-        if sevens[i].0 != sevens[place].0
+        if sevens[place].0 != sevens[i].0
             { place += 1; sevens[place] = sevens[i]; }
-        sevens[place].1 += 1;
+        sevens[place].1 += 1
     }
     if !sevens.is_empty() { sevens.resize(place + 1, (0,0)) }
 

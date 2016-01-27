@@ -34,10 +34,11 @@ extern "C" int main(int argc, char** argv)
     std::sort(sevens.begin(), sevens.end(),
         [](auto a, auto b) { return a.first > b.first; });
     size_t place = 0;
-    for (auto pair : sevens)
-        if (pair.first != sevens[place].first)
-            pair.second = 1, sevens[++place] = pair;
-        else sevens[place].second++;
+    for (auto seven : sevens) {
+        if (sevens[place].first != seven.first)
+            sevens[++place] = seven;
+        ++sevens[place].second;
+    }
     if (!sevens.empty()) sevens.resize(place + 1);
 
     for (auto sevencount : sevens) {
