@@ -391,12 +391,11 @@ any time, thus far there's every reason to expect to see, ten years
 on, recruiters advertising for warm bodies with ten years' production
 experience coding Rust.
 
-[Thanks to Steve Klabnik, `eddyb`, `leonardo`, `huon`, `comex`, and
-`marcianix` for major improvements to the code and to the article.
-The mistakes remain mine, all mine.]
+[Thanks to Steve Klabnik, `eddyb`, `leonardo`, `huon`, `comex`,
+`marcianix`, and `alexeiz` for major improvements to the code and
+to the article. The mistakes remain mine, all mine. Material alterations:
 
-[Material alterations:
-  1. Examples for `then_some` improved
-  2. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
-  3. Simplify output loop -- rustc has improved, allowing simpler code
+    1. Examples for `then_some` improved
+    2. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
+    3. Simplify output loop -- rustc has improved, allowing simpler code
 ]
