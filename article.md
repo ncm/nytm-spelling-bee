@@ -86,7 +86,7 @@ And Rust:
 fn main() {
     let fname = &*env::args().nth(1).unwrap_or("/usr/share/dict/words".into());
     let stdin = io::stdin();
-    let file: Box<Read> = match fname[..] {
+    let file: Box<Read> = match fname {
         "-" => Box::new(stdin.lock()),
         _ => Box::new(fs::File::open(fname).unwrap_or_else(|err| {
                  writeln!(io::stderr(), "{}: \"{}\"", err, fname).unwrap();
