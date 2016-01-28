@@ -305,9 +305,11 @@ than the equivalent loop with outer-scope state variables.  The two
 nested "`fold()`" calls, as with "`collect()`" above, drive the lazy
 iterators to completion.
 
-Curiously, just changing `scores` to an array of 16-bit values slows
-down the C++ program by quite a large amount -- almost 10% in some
-tests.  The Rust program is also affected, but less so.
+I found that iterating over a array with (e.g.) "`array.iter()`" was much
+faster than with "`&array`", although it should be the same. I suppose
+that will be fixed someday. Curiously, changing `scores` to an array of
+16-bit values slows down the C++ program by quite a large amount --
+almost 10% in some tests.  The Rust program is also affected, but less so.
 
 The second phase does output based on the scores accumulated above.
 
@@ -315,14 +317,14 @@ C++:
 
 ```cpp
         bool any = false; unsigned rest = seven;
-        char buf[8]; buf[7] = '\n';
+        char out[8]; out[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
             int points = scores[place] + 3 * sevencount.second;
             char a = (points >= 26 && points <= 32) ? any = true, 'A' : 'a';
-            buf[place] = a + (25 - std::bitset<32>(~rest & (rest - 1)).count());
+            out[place] = a + (25 - std::bitset<32>(~rest & (rest - 1)).count());
         }
         if (any)
-            std::cout.rdbuf()->sputn(buf, sizeof(buf));
+            std::cout.rdbuf()->sputn(out, sizeof(out));
     }
 }
 ```
@@ -346,12 +348,7 @@ And Rust:
 I call this about even, too.
 
 Rust's `trailing_zeros()` maps to the instruction `CTZ`.  C++ offers
-no direct equivalent, but `bitset<>::count()` serves. I found that
-iterating over a small array in Rust with (e.g.) "`array.iter()`" was
-much faster than with "`&array`", although it should be the same. 
-I suppose that will be fixed someday. As before, using outer-scope
-variables can be much slower than passing `fold`'s state along to its
-next iteration.
+no direct equivalent, but `bitset<>::count()` serves.
 
 The loop walks the `out` array backward, skipping the newline, and
 pairing each byte with its corresponding score and a one-bit in `seven`.

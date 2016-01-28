@@ -53,14 +53,14 @@ extern "C" int main(int argc, char** argv)
             }
 
         bool any = false; unsigned rest = seven;
-        char buf[8]; buf[7] = '\n';
+        char out[8]; out[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
             int points = scores[place] + sevencount.second * 3;
             char a = (points >= 26 && points <= 32) ? any = true, 'A' : 'a';
-            buf[place] = a + (25 - std::bitset<32>(~rest & (rest - 1)).count());
+            out[place] = a + (25 - std::bitset<32>(~rest & (rest - 1)).count());
         }
         if (any)
-            std::cout.rdbuf()->sputn(buf, 8);
+            std::cout.rdbuf()->sputn(out, 8);
     }
     return 0;
 }
