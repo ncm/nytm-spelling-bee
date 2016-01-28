@@ -84,11 +84,11 @@ And Rust:
 
 ```rust
 fn main() {
-    let fname = env::args().nth(1).unwrap_or("/usr/share/dict/words".into());
+    let fname = &*env::args().nth(1).unwrap_or("/usr/share/dict/words".into());
     let stdin = io::stdin();
-    let file: Box<Read> = match &fname[..] {
+    let file: Box<Read> = match fname[..] {
         "-" => Box::new(stdin.lock()),
-        _ => Box::new(fs::File::open(&fname).unwrap_or_else(|err| {
+        _ => Box::new(fs::File::open(fname).unwrap_or_else(|err| {
                  writeln!(io::stderr(), "{}: \"{}\"", err, fname).unwrap();
                  process::exit(1);
              }))
@@ -107,10 +107,10 @@ read from `stdin`, which is convenient for testing. On standard Linux
 systems the "words" file is a list of practical English words, including
 proper names, contractions, and short words that must be filtered out.
 Notable, here, is the use of `Box` for type-erasure so `io::stdin` can be
-substituted for the `fs::File` handle. The odd construct `&fname[..]`
-is needed because `"-"` is a built-in character sequence, but `fname`
-is a library `String` type with a character sequence hidden inside;
-`match` needs help to see it.
+substituted for the `fs::File` handle. The odd construct `&*` extracts
+the character sequence hidden inside the (`Option`-wrapped) `String`
+produced by `nth()`, so that `match` will have something it can compare
+directly to the built-in literal string `"-"`.
 
 I don't mind locking `io::stdin`, to get faster input, but requiring
 that the call to `lock()` be in a separate statement is weird.
@@ -255,7 +255,7 @@ instead of
     return is(c) { Some(f(c)) } else { None }
 ```
 The body of `then_some` is just a one-liner, but to be useful it needs
-to be standard.
+to be standard.^[I do not dare to propose "`ergo_some`".]
 
 The main loop is presented below, in two phases.  The first half is where
 the program spends most of its time.
