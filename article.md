@@ -398,4 +398,5 @@ to the article. The mistakes remain mine, all mine. Material alterations:
     1. Examples for `then_some` improved
     2. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
     3. Simplify output loop -- rustc has improved, allowing simpler code
+    4. Simplify argument processing, slightly
 ]
