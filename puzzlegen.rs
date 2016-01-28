@@ -52,14 +52,13 @@ use std::{fs, io, env, process};
                 scores
             });
 
-        let mut out = *b".......\n";
-        let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
-            .fold((false, seven), |(mut any, rest), (&score, outc)| {
-                let a = match score + 3 * count
-                    { 26 ... 32 => { any = true; b'A' }, _ => b'a' };
-                *outc = a + (25 - rest.trailing_zeros()) as u8;
-                (any, rest & rest - 1)
-            });
+        let (mut any, mut rest, mut out) = (false, seven, *b".......\n");
+        for i in 0..7 {
+            let a = match scores[i] + 3 * count
+               { 26 ... 32 => { any = true; b'A' }, _ => b'a' };
+            out[6 - i] = a + (25 - rest.trailing_zeros()) as u8;
+            rest &= rest - 1
+        }
         if any
             { sink.write(&out).unwrap(); };
     }

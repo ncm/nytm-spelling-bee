@@ -52,8 +52,7 @@ extern "C" int main(int argc, char** argv)
                         ++scores[place];
             }
 
-        bool any = false;
-        unsigned rest = seven;
+        bool any = false; unsigned rest = seven;
         char buf[8]; buf[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
             int points = scores[place] + sevencount.second * 3;

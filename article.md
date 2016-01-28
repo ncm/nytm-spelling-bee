@@ -314,8 +314,7 @@ The second phase does output based on the scores accumulated above.
 C++:
 
 ```cpp
-        bool any = false;
-        unsigned rest = seven;
+        bool any = false; unsigned rest = seven;
         char buf[8]; buf[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
             int points = scores[place] + 3 * sevencount.second;
@@ -331,14 +330,13 @@ C++:
 And Rust:
 
 ```rust
-        let mut out = *b".......\n";
-        let (any, _) = scores.iter().zip(out.iter_mut().rev().skip(1))
-            .fold((false, seven), |(mut any, rest), (&score, outc)| {
-                let a = match score + 3 * count
-                    { 26 ... 32 => { any = true; b'A' }, _ => b'a' };
-                *outc = a + (25 - rest.trailing_zeros()) as u8;
-                (any, rest & rest - 1)
-            });
+        let (mut any, mut rest, mut out) = (false, seven, *b".......\n");
+        for i in 0..7 {
+            let a = match scores[i] + 3 * count
+               { 26 ... 32 => { any = true; b'A' }, _ => b'a' };
+            out[6 - i] = a + (25 - rest.trailing_zeros()) as u8;
+            rest &= rest - 1
+        }
         if any
             { sink.write(&out).unwrap(); };
     }
@@ -355,15 +353,15 @@ I suppose that will be fixed someday. As before, using outer-scope
 variables can be much slower than passing `fold`'s state along to its
 next iteration.
 
-The `fold` walks the `out` array backward, skipping the newline, and
-pairing each byte with a corresponding score and a one-bit in `seven`.
+The loop walks the `out` array backward, skipping the newline, and
+pairing each byte with its corresponding score and a one-bit in `seven`.
 The output is built of `u8` bytes instead of proper Rust characters
 because operating on character and string types would be slowed by
 runtime error checking and conversions.  (The algorithm used here only
 works with ASCII anyhow.)  Unlike in the C++ code, the `out` elements
-are initialized twice. People complain online about the few choices
-available for initializing arrays, which often requires the arrays
-to be made unnecessarily mutable.
+are initialized twice (although it's possible the optimizer elides it).
+People complain online about the few choices available for initializing
+arrays, which often requires the arrays to be made unnecessarily mutable.
 
 Curiously, most variations of the C++ version run only half as fast as
 they should on Intel Haswell chips, probably because of branch prediction
@@ -400,4 +398,5 @@ The mistakes remain mine, all mine.]
 [Material alterations:
   1. Examples for `then_some` improved
   2. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
+  3. Simplify output loop -- rustc has improved, allowing simpler code
 ]
