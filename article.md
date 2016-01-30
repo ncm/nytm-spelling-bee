@@ -140,11 +140,10 @@ C++ version needs `std::bitset` for its member `count()` (which would be
 `size()` if `bitset` were a proper C++ set) because it is the only way in
 C++ to get at the `POPCNT` instruction without using a non-standard
 compiler intrinsic like Gcc's `__builtin_popcountl`. Using `bitset<32>`
-instead of `<26>` suppresses some redundant masking operations.  C++
-`bitset` doesn't have an `operator<` (yet), so the bitsets are actually
-stored as regular `unsigned`. (Since the smallest `bitset<>` on Gcc/amd64
-is 64 bits, storing `unsigned` is more efficient anyway.)  Rust has no
-equivalent to bitset (yet), so we're lucky we needed just 26 bits.
+instead of `<26>` suppresses some redundant masking operations. Since the
+smallest `bitset<>` on Gcc/amd64 is 64 bits, the values are stored more
+efficiently as `unsigned`.  Rust has no equivalent to bitset (yet), so
+we're lucky we needed just 26 bits.
 
 The actual types of the Rust `sevens` and `words` vectors are deduced from
 the way they are used way further down in the program.  The `filter_map`
@@ -305,11 +304,13 @@ nested "`fold()`" calls drive the lazy iterators to completion.
 I found that iterating over a array with (e.g.) "`array.iter()`" was much
 faster than with "`&array`", although it should be the same. I suppose
 that will be fixed someday. Curiously, changing `scores` to an array of
-16-bit values slows down the C++ program by quite a large amount -- almost
-10% in some tests -- the compiler yields to temptation, and puts `scores`
-in an XMM register. The Rust program is also affected, but less so.
+16-bit values slows down the C++ program by quite a large amount --
+almost 10% in some tests -- as the compiler yields to temptation and
+puts `scores` in an XMM register. The Rust program is also affected,
+but less so.
 
-The second phase does output based on the scores accumulated above.
+The second phase of the main loop does output based on the scores
+accumulated above.
 
 C++:
 
