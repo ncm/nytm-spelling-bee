@@ -15,15 +15,12 @@ extern "C" int main(int argc, char** argv)
         return std::cerr << "file open failed, \"" << name << "\"\n", 1;
 
     std::vector<unsigned> words; words.reserve(1<<15);
-    std::vector<std::pair<unsigned,int>> sevens; sevens.reserve(1<<14);
+    std::vector<unsigned> sevens; sevens.reserve(1<<14);
     std::bitset<32> word; int len = 0; bool skip = false;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
         if (*in == '\n') {
-            if (!skip && len >= 5) {
-                if (word.count() == 7) {
-                    sevens.emplace_back(word.to_ulong(), 0);
-                } else words.push_back(word.to_ulong());
-            }
+            if (!skip && len >= 5)
+                (word.count() < 7 ? words : sevens).push_back(word.to_ulong());
             word = len = skip = false;
         } else if (!skip && *in >= 'a' && *in <= 'z') {
             word.set(25 - (*in - 'a'));
@@ -31,18 +28,17 @@ extern "C" int main(int argc, char** argv)
         } else { skip = true; }
     }
 
-    std::sort(sevens.begin(), sevens.end(),
-        [](auto a, auto b) { return a.first > b.first; });
-    size_t place = 0;
+    std::sort(sevens.begin(), sevens.end());
+    std::vector<unsigned> counts; counts.resize(sevens.size());
+    int count = -1; unsigned prev = 0;
     for (auto seven : sevens) {
-        if (sevens[place].first != seven.first)
-            sevens[++place] = seven;
-        ++sevens[place].second;
+        if (prev != seven)
+            sevens[++count] = prev = seven;
+        counts[count] += 3;
     }
-    if (!sevens.empty()) sevens.resize(place + 1);
 
-    for (auto sevencount : sevens) {
-        unsigned const seven = sevencount.first;
+    for (; count >= 0; --count) {
+        unsigned const seven = sevens[count];
         int scores[7] = { 0, };
         for (unsigned word : words)
             if (!(word & ~seven)) {
@@ -52,10 +48,10 @@ extern "C" int main(int argc, char** argv)
                         ++scores[place];
             }
 
-        bool any = false; unsigned rest = seven;
+        bool any = false; unsigned rest = seven; int threes = counts[count];
         char out[8]; out[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
-            int points = scores[place] + sevencount.second * 3;
+            int points = scores[place] + threes;
             char a = (points >= 26 && points <= 32) ? any = true, 'A' : 'a';
             out[place] = a + (25 - std::bitset<32>(~rest & (rest - 1)).count());
         }

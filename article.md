@@ -121,7 +121,7 @@ C++:
 
 ```cpp
     std::vector<unsigned> words; words.reserve(1<<15);
-    std::vector<std::pair<unsigned,int>> sevens; sevens.reserve(1<<14);
+    std::vector<unsigned> sevens; sevens.reserve(1<<14);
     std::bitset<32> word; int len = 0; bool skip = false;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
 ```
@@ -156,11 +156,8 @@ C++:
 
 ```cpp
         if (*in == '\n') {
-            if (!skip && len >= 5) {
-                if (word.count() == 7) {
-                    sevens.emplace_back(word.to_ulong(), 0);
-                } else words.push_back(word.to_ulong());
-            }
+            if (!skip && len >= 5)
+                (word.count() < 7 ? words : sevens).push_back(word.to_ulong());
             word = len = skip = false;
         } else if (!skip && *in >= 'a' && *in <= 'z') {
             word.set(25 - (*in - 'a'));
@@ -175,7 +172,7 @@ And Rust:
         if c == b'\n' {
             if !skip && len >= 5 {
                 if word.count_ones() == 7 {
-                        sevens.push((word, 0))
+                        sevens.push(word)
                 } else { words.push(word) }
             }
             word = 0; len = 0; skip = false;
@@ -186,12 +183,13 @@ And Rust:
     }
 ```
 
-These are exactly even. The state machine is straightforward: gather up
+These are close to even. The state machine is straightforward: gather up
 and store eligible words, and skip past ineligible words. On earlier
 versions of the Rust compiler, I had to use an iterator pipeline, using
 `.scan()`, `match`, `.filter()`, and `.collect()`, at twice the line count,
 to get tolerable performance. A `match` would work here, but the code
-would be longer.
+would be longer.  Rust could have just one `push` call like the C++, but
+it would be slower, and ugly.
 
 Incidentally, I don't know why I can write
 ```
@@ -201,8 +199,8 @@ but not
 ```
     (word, len, skip) = (0, 0, false);
 ```
-Obviously the present syntax doesn't allow it, but syntax is not physics,
-syntax is something we create in service of usefulness.  Surprising
+Obviously the present syntax doesn't allow it, but syntax is not physics.
+Syntax is something we create in service of usefulness.  Surprising
 syntactic restrictions make the language more complex for users.
 
 Next, we need to sort the collection of seven-different-letter words,
@@ -211,34 +209,33 @@ and count duplicates.
 C++:
 
 ```cpp
-    std::sort(sevens.begin(), sevens.end(),
-        [](auto a, auto b) { return a.first > b.first; });
-    size_t place = 0;
+    std::sort(sevens.begin(), sevens.end());
+    std::vector<unsigned> counts(sevens.size());
+    int count = -1; unsigned prev = 0;
     for (auto seven : sevens) {
-        if (sevens[place].first != seven.first)
-            sevens[++place] = seven;
-        ++sevens[place].second;
+        if (prev != seven)
+            sevens[++count] = prev = seven;
+        counts[count] += 3;
     }
-    if (!sevens.empty()) sevens.resize(place + 1);
 ```
 
 And Rust:
 
 ```rust
-    sevens.sort_by(|a, b| b.0.cmp(&a.0));
-    let mut place = 0;
+    sevens.sort();
+    let (mut prev, mut count, mut counts) = (0, !0, vec![0; sevens.len()]);
     for i in 0..sevens.len() {
-        if sevens[place].0 != sevens[i].0
-            { place += 1; sevens[place] = sevens[i]; }
-        sevens[place].1 += 1;
+        if prev != sevens[i]
+            { count += 1; prev = sevens[i]; sevens[count] = prev; }
+        counts[count] += 3;
     }
-    if !sevens.is_empty() { sevens.resize(place + 1, (0,0)) }
 ```
 
 These are very close to even. In Rust, when working with two elements
 of the same vector, indexing is more comfortable.  One hopes that the
-optimizer can see that `place` cannot exceed `i`, so no bounds checking
-is needed.
+optimizer can see that `count` cannot exceed `sevens.len()`, so no bounds
+checking is needed.  Rust doesn't like indexing with a signed integer,
+so we start the index at all ones and let it roll over to 0 instead.
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, would make this
@@ -263,8 +260,8 @@ the program spends most of its time.
 C++:
 
 ```cpp
-   for (auto sevencount : sevens) {
-        unsigned const seven = sevencount.first;
+    for (; count >= 0; --count) {
+        unsigned const seven = sevens[count];
         int scores[7] = { 0, };
         for (unsigned word : words)
             if (!(word & ~seven)) {
@@ -280,7 +277,8 @@ And Rust:
 ```rust
     let stdout = io::stdout();
     let mut sink = io::BufWriter::new(stdout.lock());
-    for (&seven, &count) in sevens.iter() {
+    for count in (0..(count + 1)).rev() {
+        let seven = sevens[count];
         let scores = words.iter()
             .filter(|&word| word & !seven == 0)
             .fold([0;7], |mut scores, word| {
@@ -302,24 +300,25 @@ faster output. The "`.filter`" line is executed 190M times. Only some
 program spends more time than anywhere else.  The "`fold()`" with its
 `scores` state passed along from one iteration to the next is much faster
 than the equivalent loop with outer-scope state variables.  The two
-nested "`fold()`" calls, as with "`collect()`" above, drive the lazy
-iterators to completion.
+nested "`fold()`" calls drive the lazy iterators to completion.
 
 I found that iterating over a array with (e.g.) "`array.iter()`" was much
 faster than with "`&array`", although it should be the same. I suppose
 that will be fixed someday. Curiously, changing `scores` to an array of
-16-bit values slows down the C++ program by quite a large amount --
-almost 10% in some tests.  The Rust program is also affected, but less so.
+16-bit values slows down the C++ program by quite a large amount -- almost
+10% in some tests -- the compiler yields to temptation, and puts `scores`
+in an XMM register. The Rust program is also affected, but less so.
 
 The second phase does output based on the scores accumulated above.
 
 C++:
 
 ```cpp
+        int threes = counts[count];
         bool any = false; unsigned rest = seven;
         char out[8]; out[7] = '\n';
         for (int place = 7; --place >= 0; rest &= rest - 1) {
-            int points = scores[place] + 3 * sevencount.second;
+            int points = scores[place] + threes;
             char a = (points >= 26 && points <= 32) ? any = true, 'A' : 'a';
             out[place] = a + (25 - std::bitset<32>(~rest & (rest - 1)).count());
         }
@@ -332,11 +331,12 @@ C++:
 And Rust:
 
 ```rust
+        let threes = counts[count];
         let (mut any, mut rest, mut out) = (false, seven, *b".......\n");
-        for i in 0..7 {
-            let a = match scores[i] + 3 * count
+        for place in 0..7 {
+            let a = match scores[place] + threes
                { 26 ... 32 => { any = true; b'A' }, _ => b'a' };
-            out[6 - i] = a + (25 - rest.trailing_zeros()) as u8;
+            out[6 - place] = a + (25 - rest.trailing_zeros()) as u8;
             rest &= rest - 1
         }
         if any
@@ -364,11 +364,11 @@ Curiously, most variations of the C++ version run only half as fast as
 they should on Intel Haswell chips, probably because of branch prediction
 failures^[<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67153>].
 (Wrapping "`!(word & ~seven)`" in `__builtin_expect(..., false)` works
-around the bug.) It's possible that Gcc will learn someday to step
-around the Haswell bug by itself, or new microcode will fix it, but
-I'm amazed that Intel released Haswell that way.^[Maybe I shouldn't
-be: <http://danluu.com/cpu-bugs/>]  I don't know yet if
-it's fixed in Broadwell or Skylake.
+around the hardware bug.) It's possible that Gcc will learn someday to
+step around the Haswell bug by itself, or new microcode will fix it,
+but I'm amazed that Intel released Haswell that way.^[Maybe I shouldn't
+be: <http://danluu.com/cpu-bugs/>]  I don't know yet if it Intel fixed
+it in Broadwell or Skylake.
 
 Rust has some rough edges, but coding in it was kind of fun. As with
 C++, if a Rust program compiles at all, it generally works, more or
@@ -381,12 +381,12 @@ iterator primitives string together nicely.
 
 It is a signal achievement to match C++ in low-level performance and
 brevity while surpassing it in safety, with reasonable prospects to match
-its expressive power in the near future. C++ is a rapidly moving target,
-held back only by legacy compatibility requirements, so Rust will need
-to keep moving fast just to keep up.  While Rust could "jump the shark"
-any time, thus far there's every reason to expect to see, ten years
-on, recruiters advertising for warm bodies with ten years' production
-experience coding Rust.
+its expressive power in the foreseeable future. C++ is a rapidly moving
+target, held back only by legacy compatibility requirements, so Rust
+will need to keep moving fast just to keep up.  While Rust could "jump
+the shark" any time, thus far there's every reason to expect to see,
+ten years on, recruiters advertising for warm bodies with ten years'
+production experience coding Rust.
 
 [Thanks to Steve Klabnik, `eddyb`, `leonardo`, `huon`, `comex`,
 `marcianix`, and `alexeiz` for major improvements to the code and
@@ -396,4 +396,5 @@ to the article. The mistakes remain mine, all mine. Material alterations:
     2. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
     3. Simplify output loop -- rustc has improved, allowing simpler code
     4. Simplify argument processing, slightly
+    5. Improve counting logic
 ]
