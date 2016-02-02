@@ -18,14 +18,14 @@ use std::{fs, io, env, process};
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
         if c == b'\n' {
             if len >= 5 {
-                if word.count_ones() == 7
-                     { sevens.push(word) }
-                else { words.push(word) }
+                if word.count_ones() == 7 {
+                        sevens.push(word)
+                } else { words.push(word) }
             }
             word = 0; len = 0;
-        } else if len != -1 && c >= b'a' && c <= b'z' {
-            word |= 1 << (25 - (c - b'a'));
-            if word.count_ones() <= 7 { len += 1 } else { len = -1 }
+        } else if len != -1 && c >= b'a' && c <= b'z' &&
+            { word |= 1 << (25 - (c - b'a')); word.count_ones() <= 7 } {
+                 len += 1
         } else { len = -1 }
     }
 

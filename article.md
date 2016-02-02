@@ -4,7 +4,7 @@
 | Git: <http://github.com/ncm/nytm-spelling-bee>
 | Reddit: <https://redd.it/42qc78>
 | Published: 2016-01-25
-| Last Edit: 2016-01-27
+| Last Edit: 2016-02-02
 
 If Rust is to take on work previously reserved to C++, we need to know
 how well it does what C++ does best. What's fast, what's slow? What's
@@ -176,9 +176,9 @@ And Rust:
                 } else { words.push(word) }
             }
             word = 0; len = 0;
-        } else if len != -1 && c >= b'a' && c <= b'z' {
-            word |= 1 << (25 - (c - b'a'));
-            if word.count_ones() <= 7 { len += 1 } else { len = -1 }
+        } else if len != -1 && c >= b'a' && c <= b'z' &&
+            { word |= 1 << (25 - (c - b'a')); word.count_ones() <= 7 } {
+                 len += 1
         } else { len = -1 }
     }
 ```
@@ -403,6 +403,7 @@ to the article. The mistakes remain mine, all mine. Material alterations:
     c. Simplify output loop -- rustc has improved, allowing simpler code
     d. Simplify argument processing, slightly
     e. Improve counting logic
-    f. Enable unrolled/out-of-order loops by precomputing bit masks
+    f. Enable unrolled/out-of-order loops by precomputing bit positions
     g. Replace innermost-loop conditional branch with a bitwise operation
+    h. Improve state machine test for valid word characters
 ]
