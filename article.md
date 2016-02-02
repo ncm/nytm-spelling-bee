@@ -24,8 +24,8 @@ Few programs get this much attention to optimization.
 
 The C++ version now runs four times as fast as when I started; about as
 fast, I think, as it can be made without making it longer, or parallel,
-or using third-party libraries. In 75 ms on modern hardware, it performs 
-some 190 million basic operations (at a cycle per iteration (!)), filtering 
+or using third-party libraries. In 75 ms on modern hardware, it performs
+some 190 million basic operations (at a cycle per iteration (!)), filtering
 to 5 million more-complex operations (at under 16 cycles per). Meanwhile,
 the Rust program does about the same operations in about the same time:
 a percent or two faster or slower on various hardware. Many variations
@@ -122,7 +122,7 @@ C++:
 ```cpp
     std::vector<unsigned> words; words.reserve(1<<15);
     std::vector<unsigned> sevens; sevens.reserve(1<<14);
-    std::bitset<32> word; int len = 0; bool skip = false;
+    std::bitset<32> word; int len = 0;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
 ```
 
@@ -131,7 +131,7 @@ Rust:
 ```rust
     let mut words = Vec::with_capacity(1 << 15);
     let mut sevens = Vec::with_capacity(1 << 14);
-    let (mut word, mut len, mut skip) = (0u32, 0, false);
+    let (mut word, mut len) = (0u32, 0);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
 ```
 
@@ -143,7 +143,8 @@ compiler intrinsic like Gcc's `__builtin_popcountl`. Using `bitset<32>`
 instead of `<26>` suppresses some redundant masking operations. Since the
 smallest `bitset<>` on Gcc/amd64 is 64 bits, the values are stored more
 efficiently as `unsigned`.  Rust has no equivalent to bitset (yet), so
-we're lucky we needed just 26 bits.
+we're lucky all the bits we needed fit in an available integer type;
+but similarly so for C++.
 
 The actual types of the Rust `sevens` and `words` vectors are deduced from
 the way they are used way further down in the program.  The `filter_map`
@@ -155,13 +156,13 @@ C++:
 
 ```cpp
         if (*in == '\n') {
-            if (!skip && len >= 5)
+            if (len >= 5)
                 (word.count() < 7 ? words : sevens).push_back(word.to_ulong());
-            word = len = skip = false;
-        } else if (!skip && *in >= 'a' && *in <= 'z') {
+            word = len = 0;
+        } else if (len != -1 && *in >= 'a' && *in <= 'z') {
             word.set(25 - (*in - 'a'));
-            if (word.count() <= 7) ++len; else skip = true;
-        } else { skip = true; }
+            if (word.count() <= 7) ++len; else len = -1;
+        } else { len = -1; }
     }
 ```
 
@@ -169,16 +170,16 @@ And Rust:
 
 ```rust
         if c == b'\n' {
-            if !skip && len >= 5 {
+            if len >= 5 {
                 if word.count_ones() == 7 {
                         sevens.push(word)
                 } else { words.push(word) }
             }
-            word = 0; len = 0; skip = false;
-        } else if !skip && c >= b'a' && c <= b'z' {
+            word = 0; len = 0;
+        } else if len != -1 && c >= b'a' && c <= b'z' {
             word |= 1 << (25 - (c - b'a'));
-            if word.count_ones() <= 7 { len += 1 } else { skip = true }
-        } else { skip = true }
+            if word.count_ones() <= 7 { len += 1 } else { len = -1 }
+        } else { len = -1 }
     }
 ```
 
@@ -188,7 +189,7 @@ versions of the Rust compiler, I had to use an iterator pipeline, using
 `.scan()`, `match`, `.filter()`, and `.collect()`, at twice the line count,
 to get tolerable performance. A `match` would work here, but the code
 would be longer.  Rust could have just one `push` call like the C++, but
-it would be slower, and ugly.
+it would be ugly, and slower besides.
 
 Incidentally, I don't know why I can write
 ```
@@ -199,8 +200,7 @@ but not
     (word, len, skip) = (0, 0, false);
 ```
 Obviously the present syntax doesn't allow it, but syntax is not physics.
-Syntax is something we create in service of usefulness.  Surprising
-syntactic restrictions make the language more complex for users.
+Surprising syntactic restrictions make the language more complex for users.
 
 Next, we need to sort the collection of seven-different-letter words,
 and count duplicates.
@@ -231,10 +231,11 @@ And Rust:
 ```
 
 These are very close to even. In Rust, when working with two elements
-of the same vector, indexing is more comfortable.  One hopes that the
-optimizer can see that `count` cannot exceed `sevens.len()`, so no bounds
-checking is needed.  Rust doesn't like indexing with a signed integer,
-so we start the index at all ones and let it roll over to 0 instead.
+of the same vector, indexing is more comfortable, because it avoids
+ownership conflicts.  One hopes that the optimizer can see that `count`
+cannot exceed `sevens.len()`, so that bounds checking may be elided.
+Rust doesn't like indexing with a signed integer, so we start the index
+at all ones and let it roll over to 0, instead.
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, would make this
@@ -254,21 +255,22 @@ The body of `then_some` is just a one-liner, but to be useful it needs
 to be standard.^[I do not dare to propose "`ergo_some`".]
 
 The main loop is presented below, in two phases.  The first half is where
-the program spends most of its time.
+the program spends practically all its time.
 
 C++:
 
 ```cpp
     for (; count >= 0; --count) {
         unsigned const seven = sevens[count];
-        int scores[7] = { 0, };
+        int bits[7], int scores[7];
+        for (unsigned rest = seven, place = 7; place-- != 0; rest &= rest - 1) {
+            bits[place] = std::bitset<32>((rest & ~(rest - 1)) - 1).count();
+            scores[place] = counts[count];
+        }
         for (unsigned word : words)
-            if (!(word & ~seven)) {
-                unsigned rest = seven;
-                for (int place = 7; --place >= 0; rest &= rest - 1)
-                    if (word & rest & -rest)
-                        ++scores[place];
-            }
+            if (!(word & ~seven))
+                for (int place = 0; place < 7; ++place)
+                    scores[place] += (word >> bits[place]) & 1;
 ```
 
 And Rust:
@@ -278,36 +280,45 @@ And Rust:
     let mut sink = io::BufWriter::new(stdout.lock());
     for count in (0..(count + 1)).rev() {
         let seven = sevens[count];
+        let (mut rest, mut bits) = (seven, [0;7]);
+        for place in (0..7).rev()
+            { bits[place] = rest.trailing_zeros(); rest &= rest - 1 }
         let scores = words.iter()
             .filter(|&word| word & !seven == 0)
-            .fold([0;7], |mut scores, word| {
-                scores.iter_mut().fold(seven, |rest, score| {
-                   if word & rest & !(rest - 1) != 0
-                       { *score += 1 }
-                   rest & rest - 1
-                });
+            .fold([counts[count];7], |mut scores, &word| {
+                for place in 0..7
+                     { scores[place] += (word >> bits[place]) & 1; }
                 scores
             });
 ```
 
-This is close to even.
+This is close to even. Again, the first two lines in the Rust code seem
+excessive just to get faster output.
 
-Again, the first two lines in the Rust code seem excessive just to get
-faster output. The "`.filter`" line is executed 190M times. Only some
-720K iterations reach the outer "`.fold()`", but the inner loop runs
-5M times and `*score` is incremented 3M times.  That loop is where the
-program spends more time than anywhere else.  The "`fold()`" with its
-`scores` state passed along from one iteration to the next is much faster
-than the equivalent loop with outer-scope state variables.  The two
-nested "`fold()`" calls drive the lazy iterators to completion.
+The first inner loop explodes the positions of bits in `seven` out to
+the `bits` array, one per element, so that subsequent loops can be
+unrolled and executed out-of-order. (Optimizers actually seem able to
+do this all by themselves, but the code is shorter this way, and maybe
+easier to understand.)  Rust's `trailing_zeros()` maps to the machine
+instruction `CTZ`.  C++ offers no direct equivalent, but
+`bitset<>::count()` serves.
+
+The "`.filter`" line is executed 190M times.  Only some 720K
+iterations reach the "`.fold()`", but the innermost loop runs 5M
+times, and `*score` is actually incremented 3M times.  That loop is
+where the program spends more time than anywhere else.  The "`fold()`",
+with its `scores` state passed along from one iteration to the next,
+is much faster than the equivalent loop with outer-scope state
+variables.  The `words` iterator is "lazy", but the "`fold()`" call
+drives the it to completion.
 
 I found that iterating over a array with (e.g.) "`array.iter()`" was much
 faster than with "`&array`", although it should be the same. I suppose
 that will be fixed someday. Curiously, changing `scores` to an array of
-16-bit values slows down the C++ program by quite a large amount --
-almost 10% in some tests -- as the compiler yields to temptation and
-puts `scores` in an XMM register. The Rust program is also affected,
-but less so.
+16-bit values slows down earlier versions of the C++ program by quite a
+large amount -- almost 10% in some tests -- as the compiler yields to
+temptation and puts `scores` in an XMM register. The Rust program was
+also affected, but less so.
 
 The second phase of the main loop does output based on the scores
 accumulated above.
@@ -315,16 +326,15 @@ accumulated above.
 C++:
 
 ```cpp
-        int threes = counts[count];
-        bool any = false; unsigned rest = seven;
-        char out[8]; out[7] = '\n';
-        for (int place = 7; --place >= 0; rest &= rest - 1) {
-            int points = scores[place] + threes;
+        bool any = false;
+        char out[8];
+        for (int place = 0; place != 7; ++place) {
+            int points = scores[place];
             char a = (points >= 26 && points <= 32) ? any = true, 'A' : 'a';
-            out[place] = a + (25 - std::bitset<32>(~rest & (rest - 1)).count());
+            out[place] = a + (25 - bits[place]);
         }
         if (any)
-            std::cout.rdbuf()->sputn(out, sizeof(out));
+            out[7] = '\n', std::cout.rdbuf()->sputn(out, 8);
     }
 }
 ```
@@ -332,13 +342,11 @@ C++:
 And Rust:
 
 ```rust
-        let threes = counts[count];
-        let (mut any, mut rest, mut out) = (false, seven, *b".......\n");
+        let (mut any, mut out) = (false, *b".......\n");
         for place in 0..7 {
-            let a = match scores[place] + threes
+            let a = match scores[place]
                { 26 ... 32 => { any = true; b'A' }, _ => b'a' };
-            out[6 - place] = a + (25 - rest.trailing_zeros()) as u8;
-            rest &= rest - 1
+            out[place] = a + (25 - bits[place]) as u8
         }
         if any
             { sink.write(&out).unwrap(); };
@@ -348,18 +356,15 @@ And Rust:
 
 I call this about even, too.
 
-Rust's `trailing_zeros()` maps to the instruction `CTZ`.  C++ offers
-no direct equivalent, but `bitset<>::count()` serves.
-
-The loop walks the `out` array backward, skipping the newline, and
-pairing each byte with its corresponding score and a one-bit in `seven`.
-The output is built of `u8` bytes instead of proper Rust characters
-because operating on character and string types would be slowed by
-runtime error checking and conversions.  (The algorithm used here only
-works with ASCII anyhow.)  Unlike in the C++ code, the `out` elements
-are initialized twice (although it's possible the optimizer elides it).
-People complain online about the few choices available for initializing
-arrays, which often requires the arrays to be made unnecessarily mutable.
+The loop walks the `out` array, pairing each byte with its
+corresponding score and a bit position from `bits`. The output is built
+of `u8` bytes instead of proper Rust characters because operations on
+character and string types are slowed by runtime error checking and
+conversions.  (The algorithm used here only works with ASCII anyhow.)
+Unlike in the C++ code, the `out` elements are initialized twice
+(although it's possible the optimizer elides it).  People complain
+online about the few choices available for initializing arrays, which
+often requires the arrays to be made unnecessarily mutable.
 
 Curiously, most variations of the C++ version run only half as fast as
 they should on Intel Haswell chips, probably because of branch prediction
@@ -393,9 +398,11 @@ production experience coding Rust.
 `marcianix`, and `alexeiz` for major improvements to the code and
 to the article. The mistakes remain mine, all mine. Material alterations:
 
-    1. Examples for `then_some` improved
-    2. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
-    3. Simplify output loop -- rustc has improved, allowing simpler code
-    4. Simplify argument processing, slightly
-    5. Improve counting logic
+    a. Examples for `then_some` improved
+    b. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
+    c. Simplify output loop -- rustc has improved, allowing simpler code
+    d. Simplify argument processing, slightly
+    e. Improve counting logic
+    f. Enable unrolled/out-of-order loops by precomputing bit masks
+    g. Replace innermost-loop conditional branch with a bitwise operation
 ]
