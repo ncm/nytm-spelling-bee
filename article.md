@@ -187,9 +187,9 @@ These are close to even. The state machine is straightforward: gather up
 and store eligible words, and skip past ineligible words. On earlier
 versions of the Rust compiler, I had to use an iterator pipeline, using
 `.scan()`, `match`, `.filter()`, and `.collect()`, at twice the line count,
-to get tolerable performance. A `match` would work here, but the code
-would be longer.  Rust could have just one `push` call like the C++, but
-it would be ugly, and slower besides.
+to get tolerable performance. Now the loop is faster. A `match` would work
+here, but the code would be longer.  Rust could have just one `push` call,
+as in the C++ version, but it would be ugly, and slower besides.
 
 Incidentally, I don't know why I can write
 ```
@@ -251,8 +251,8 @@ instead of
 ```rust
     return is(c) { Some(f(c)) } else { None }
 ```
-The body of `then_some` is just a one-liner, but to be useful it needs
-to be standard.^[I do not dare to propose "`ergo_some`".]
+The body of `then_some()` is just a one-liner, but to be useful it needs
+to be standard.^[I do not dare to propose "`ergo_some()`".]
 
 The main loop is presented below, in two phases.  The first half is where
 the program spends practically all its time.
