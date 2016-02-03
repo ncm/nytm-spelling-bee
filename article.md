@@ -30,7 +30,9 @@ to 5 million more-complex operations (at under 16 cycles per). Meanwhile,
 the Rust program does about the same operations in about the same time:
 a percent or two faster or slower on various hardware. Many variations
 that seemed like they ought to run the same speed or faster turned out
-slower.
+slower, often much slower.  It turned out to be surprisingly difficult
+to find a way to express the same C++ operations differently and get a
+different run time.
 
 Below, I present each program in fragments. The code may be denser than
 you are used to, just to keep it to one printed page. When I write "much
@@ -182,7 +184,9 @@ versions of the Rust compiler, I had to use an iterator pipeline, using
 `.scan()`, `match`, `.filter()`, and `.collect()`, at twice the line count,
 to get tolerable performance. Now the loop is faster. A `match` would work
 here, but the code would be longer.  Rust could have just one `push` call,
-as in the C++ version, but it would be ugly, and slower besides.
+as in the C++ version, but it would be ugly, and slower besides. Using a
+value of `ones` to flag ineligible words saves one unpredictable branch
+per character.
 
 Incidentally, I don't know why I can write
 ```
@@ -202,7 +206,7 @@ C++:
 
 ```cpp
     std::sort(sevens.begin(), sevens.end());
-    std::vector<unsigned> counts(sevens.size());
+    std::vector<unsigned> counts; counts.resize(sevens.size());
     int count = -1; unsigned prev = 0;
     for (auto seven : sevens) {
         if (prev != seven)
@@ -226,12 +230,15 @@ And Rust:
 
 These are close to even. In Rust, when working with two elements of
 the same vector, we need to index both elements to avoid an ownership
-conflict with an iterator, but that comes with bounds checking. Rust
-doesn't like indexing with a signed integer.  We have to start count
-at 0 to give optimizer a chance to notice that `count` cannot exceed
-`counts.len()`, and elide bounds checking; but then we need the `if`
-statement to start things off. (The cost of the bounds check would not
-actually be detectable here.)
+conflict with an iterator, but that comes with bounds checking.  We
+have to start `count` at 0 to give the optimizer a chance to notice that
+it cannot exceed `counts.len()`, and elide bounds checking; but
+then we need the `if` statement to start things off. (The cost of the
+bounds check would not actually be detectable here.)
+
+I was astonished to find that constructing the C++ `counts` vector with
+a size argument was much, much slower than default-constructing and
+then resizing it, as above. (This was with g++-5.3.1.)
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, would make this
@@ -365,11 +372,11 @@ Curiously, most variations of the C++ version run only half as fast as
 they should on Intel Haswell chips, probably because of branch prediction
 failures^[<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67153>].
 (Wrapping "`!(word & ~seven)`" in `__builtin_expect(..., false)` works
-around the hardware bug.) It's possible that Gcc will learn someday to
-step around the Haswell bug by itself, or new microcode will fix it,
-but I'm amazed that Intel released Haswell that way.^[Maybe I shouldn't
-be: <http://danluu.com/cpu-bugs/>]  I don't know yet if it Intel fixed
-it in Broadwell or Skylake.
+around the hardware bug by placing instructions differently.) It's
+possible that Gcc will learn someday to step around the Haswell bug by
+itself, or new microcode will fix it, but I'm amazed that Intel released
+Haswell that way.^[Maybe I shouldn't be: <http://danluu.com/cpu-bugs/>]
+I don't know yet if it Intel fixed it in Broadwell or Skylake.
 
 Rust has some rough edges, but coding in it was kind of fun. As with
 C++, if a Rust program compiles at all, it generally works, more or
