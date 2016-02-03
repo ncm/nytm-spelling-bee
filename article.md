@@ -319,8 +319,7 @@ accumulated above.
 C++:
 
 ```cpp
-        bool any = false;
-        char out[8];
+        bool any = false; char out[8];
         for (int place = 0; place != 7; ++place) {
             int points = scores[place];
             char a = (points >= 26 && points <= 32) ? any = true, 'A' : 'a';
