@@ -4,7 +4,7 @@
 | Git: <http://github.com/ncm/nytm-spelling-bee>
 | Reddit: <https://redd.it/42qc78>
 | Published: 2016-01-25
-| Last Edit: 2016-02-02
+| Last Edit: 2016-02-03
 
 If Rust is to take on work previously reserved to C++, we need to know
 how well it does what C++ does best. What's fast, what's slow? What's
@@ -156,34 +156,27 @@ C++:
 
 ```cpp
         if (*in == '\n') {
-            if (len >= 5)
-                (word.count() < 7 ? words : sevens).push_back(word.to_ulong());
-            word = len = 0;
-        } else if (len != -1 && *in >= 'a' && *in <= 'z' &&
-                word.set(25 - (*in - 'a')).count() <= 7) {
-            ++len;
-        } else { len = -1; }
-    }
+            if (len >= 5 && ones <= 7)
+                (ones < 7 ? words : sevens).push_back(word.to_ulong());
+            word = len = ones = 0;
+        } else if (ones != 8 && *in >= 'a' && *in <= 'z') {
+            ++len, ones = word.set(25 - (*in - 'a')).count();
+        } else { ones = 8; }
 ```
 
 And Rust:
 
 ```rust
         if c == b'\n' {
-            if len >= 5 {
-                if word.count_ones() == 7 {
-                        sevens.push(word)
-                } else { words.push(word) }
-            }
-            word = 0; len = 0;
-        } else if len != -1 && c >= b'a' && c <= b'z' &&
-                { word |= 1 << (25 - (c - b'a')); word }.count_ones() <= 7 {
-            len += 1
-        } else { len = -1 }
-    }
+            if len >= 5 && ones <= 7
+                { if ones == 7 { sevens.push(word) } else { words.push(word) } }
+            word = 0; len = 0; ones = 0;
+        } else if ones != 8 && c >= b'a' && c <= b'z' {
+            word |= 1 << (25 - (c - b'a')); len += 1; ones = word.count_ones()
+        } else { ones = 8 }
 ```
 
-These are close to even. The state machine is straightforward: gather up
+These are exactly even. The state machine is straightforward: gather up
 and store eligible words, and skip past ineligible words. On earlier
 versions of the Rust compiler, I had to use an iterator pipeline, using
 `.scan()`, `match`, `.filter()`, and `.collect()`, at twice the line count,

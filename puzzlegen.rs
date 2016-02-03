@@ -14,19 +14,15 @@ use std::{fs, io, env, process};
 
     let mut words = Vec::with_capacity(1 << 15);
     let mut sevens = Vec::with_capacity(1 << 14);
-    let (mut word, mut len) = (0u32, 0);
+    let (mut word, mut len, mut ones) = (0u32, 0, 0);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
         if c == b'\n' {
-            if len >= 5 {
-                if word.count_ones() == 7 {
-                        sevens.push(word)
-                } else { words.push(word) }
-            }
-            word = 0; len = 0;
-        } else if len != -1 && c >= b'a' && c <= b'z' &&
-                 { word |= 1 << (25 - (c - b'a')); word.count_ones() <= 7 } {
-            len += 1
-        } else { len = -1 }
+            if len >= 5 && ones <= 7
+                { if ones == 7 { sevens.push(word) } else { words.push(word) } }
+            word = 0; len = 0; ones = 0;
+        } else if ones != 8 && c >= b'a' && c <= b'z' {
+            word |= 1 << (25 - (c - b'a')); len += 1; ones = word.count_ones()
+        } else { ones = 8 }
     }
 
     sevens.sort();

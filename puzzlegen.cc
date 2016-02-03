@@ -16,16 +16,15 @@ extern "C" int main(int argc, char** argv)
 
     std::vector<unsigned> words; words.reserve(1<<15);
     std::vector<unsigned> sevens; sevens.reserve(1<<14);
-    std::bitset<32> word; int len = 0;
+    std::bitset<32> word; int len = 0; int ones = 0;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
         if (*in == '\n') {
-            if (len >= 5)
-                (word.count() < 7 ? words : sevens).push_back(word.to_ulong());
-            word = len = 0;
-        } else if (len != -1 && *in >= 'a' && *in <= 'z' &&
-                word.set(25 - (*in - 'a')).count() <= 7) {
-            ++len;
-        } else { len = -1; }
+            if (len >= 5 && ones <= 7)
+                (ones == 7 ? sevens : words).push_back(word.to_ulong());
+            word = len = ones = 0;
+        } else if (ones != 8 && *in >= 'a' && *in <= 'z') {
+            ++len, ones = word.set(25 - (*in - 'a')).count();
+        } else { ones = 8; }
     }
 
     std::sort(sevens.begin(), sevens.end());
