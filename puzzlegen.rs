@@ -26,7 +26,7 @@ use std::{fs, io, env, process};
     }
 
     sevens.sort();
-    let (mut prev, mut count, mut counts) = (0, !0, vec![0; sevens.len()]);
+    let (mut count, mut prev, mut counts) = (!0, 0, vec![0; sevens.len()]);
     for i in 0..sevens.len() {
         if prev != sevens[i]
             { count += 1; prev = sevens[i]; sevens[count] = prev; }
