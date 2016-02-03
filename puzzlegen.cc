@@ -28,7 +28,7 @@ extern "C" int main(int argc, char** argv)
     }
 
     std::sort(sevens.begin(), sevens.end());
-    std::vector<int> counts(sevens.size());
+    std::vector<int> counts; counts.resize(sevens.size());
     int count = -1; unsigned prev = 0;
     for (auto seven : sevens) {
         if (prev != seven)

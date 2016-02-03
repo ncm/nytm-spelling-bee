@@ -215,20 +215,23 @@ And Rust:
 
 ```rust
     sevens.sort();
-    let (mut count, mut prev, mut counts) = (!0, 0, vec![0; sevens.len()]);
-    for i in 0..sevens.len() {
+    let (mut count, mut prev, mut counts) = (0, 0, vec![0; sevens.len()]);
+    if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3; }
+    for i in 1..sevens.len() {
         if prev != sevens[i]
             { count += 1; prev = sevens[i]; sevens[count] = prev; }
         counts[count] += 3;
     }
 ```
 
-These are very close to even. In Rust, when working with two elements
-of the same vector, indexing is more comfortable, because it avoids
-ownership conflicts.  One hopes that the optimizer can see that `count`
-cannot exceed `sevens.len()`, so that bounds checking may be elided.
-Rust doesn't like indexing with a signed integer, so we start the index
-at all ones and let it roll over to 0, instead.
+These are close to even. In Rust, when working with two elements of
+the same vector, we need to index both elements to avoid an ownership
+conflict with an iterator, but that comes with bounds checking. Rust
+doesn't like indexing with a signed integer.  We have to start count
+at 0 to give optimizer a chance to notice that `count` cannot exceed
+`counts.len()`, and elide bounds checking; but then we need the `if`
+statement to start things off. (The cost of the bounds check would not
+actually be detectable here.)
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, would make this
@@ -305,7 +308,7 @@ is much faster than the equivalent loop with outer-scope state
 variables.  The `words` iterator is "lazy", but the "`fold()`" call
 drives the it to completion.
 
-I found that iterating over a array with (e.g.) "`array.iter()`" was much
+I found that iterating over an array with (e.g.) "`array.iter()`" was much
 faster than with "`&array`", although it should be the same. I suppose
 that will be fixed someday. Curiously, changing `scores` to an array of
 16-bit values slows down earlier versions of the C++ program by quite a
@@ -346,7 +349,7 @@ And Rust:
 }
 ```
 
-I call this about even, too.
+This is even, too.
 
 The loop walks the `out` array, pairing each byte with its
 corresponding score and a bit position from `bits`. The output is built
