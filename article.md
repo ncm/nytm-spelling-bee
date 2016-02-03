@@ -177,7 +177,7 @@ And Rust:
             }
             word = 0; len = 0;
         } else if len != -1 && c >= b'a' && c <= b'z' &&
-                { word |= 1 << (25 - (c - b'a')); word.count_ones() <= 7 } {
+                { word |= 1 << (25 - (c - b'a')); word }.count_ones() <= 7 {
             len += 1
         } else { len = -1 }
     }
