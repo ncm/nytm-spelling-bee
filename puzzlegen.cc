@@ -22,9 +22,9 @@ extern "C" int main(int argc, char** argv)
             if (len >= 5)
                 (word.count() < 7 ? words : sevens).push_back(word.to_ulong());
             word = len = 0;
-        } else if (len != -1 && *in >= 'a' && *in <= 'z') {
-            word.set(25 - (*in - 'a'));
-            if (word.count() <= 7) ++len; else len = -1;
+        } else if (len != -1 && *in >= 'a' && *in <= 'z' &&
+                word.set(25 - (*in - 'a')).count() <= 7) {
+            ++len;
         } else { len = -1; }
     }
 
