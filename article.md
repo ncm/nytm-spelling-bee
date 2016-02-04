@@ -195,11 +195,11 @@ per character.
 
 Incidentally, I don't know why I can write
 ```
-    let (mut word, mut len, mut skip) = (0u32, 0, false);
+    let (mut word, mut len, mut ones) = (0u32, 0, 0);
 ```
 but not
 ```
-    (word, len, skip) = (0, 0, false);
+    (word, len, ones) = (0, 0, 0);
 ```
 Obviously the present syntax doesn't allow it, but syntax is not physics.
 Surprising syntactic restrictions make the language more complex for users.
