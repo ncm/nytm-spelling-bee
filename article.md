@@ -1,10 +1,12 @@
+---
+title: "Rust vs. C++: Fine-grained Performance"
+author: "Nathan Myers <ncm@cantrip.org>"
+date: 2016-01-25 updated 2016-02-03
+lang: en
+...
 
-# Rust vs. C++: Fine-grained Performance
-| Reply to: Nathan Myers `<ncm@cantrip.org>`
-| Git: <http://github.com/ncm/nytm-spelling-bee>
+| Github: <http://github.com/ncm/nytm-spelling-bee>
 | Reddit: <https://redd.it/42qc78>
-| Published: 2016-01-25
-| Last Edit: 2016-02-03
 
 If Rust is to take on work previously reserved to C++, we need to know
 how well it does what C++ does best. What's fast, what's slow? What's
@@ -22,17 +24,20 @@ same time, I worked to speed up the C++ program, still hewing to the
 original one-page limit. After each change, I checked performance.
 Few programs get this much attention to optimization.
 
-The C++ version now runs four times as fast as when I started; about as
-fast, I think, as it can be made without making it longer, or parallel,
-or using third-party libraries. In 90 ms on modern hardware, it performs
-some 190 million basic operations (at a cycle per iteration (!)), filtering
-to 5 million more-complex operations (at under 16 cycles per). Meanwhile,
-the Rust program does about the same operations in about the same time:
-a percent or two faster or slower on various hardware. Many variations
-that seemed like they ought to run the same speed or faster turned out
-slower, often much slower.  It turned out to be surprisingly difficult
-to find a way to express the same C++ operations differently and get a
-different run time.
+The C++ version now runs more than three times as fast as when I
+started; about as fast, I think, as it can be made without making it
+longer,^[Allowed to grow without bound, this article would never have
+been published] or parallel,^[Few would say that threading is what C++
+has traditionally done best, in either sense] or using third-party
+libraries. In 90 ms on modern hardware, it performs some 190 million
+basic operations (at a cycle per iteration (!)), filtering to 5
+million more-complex operations (at under 16 cycles per). Meanwhile,
+the Rust program does about the same operations in *about the same
+time*: a percent or two faster or slower on various hardware. Many
+variations that seemed like they ought to run the same speed or faster
+turned out slower, often much slower.  By contrast, in C++ it was
+surprisingly difficult to discover a way to express the same operations
+differently and get a different run time.
 
 Below, I present each program in fragments. The code may be denser than
 you are used to, just to keep it to one printed page. When I write "much
@@ -106,7 +111,7 @@ Rust, ignoring errors takes more work.
 
 Both programs take an optional file name on the command line, and can
 read from `stdin`, which is convenient for testing. On standard Linux
-systems the "words" file is a list of practical English words, including
+systems the `words` file is a list of practical English words, including
 proper names, contractions, and short words that must be filtered out.
 Notable, here, is the use of `Box` for type-erasure so `io::stdin` can be
 substituted for the `fs::File` handle. The odd construct `&*` extracts
@@ -231,18 +236,19 @@ And Rust:
 These are close to even. In Rust, when working with two elements of
 the same vector, we need to index both elements to avoid an ownership
 conflict with an iterator, but that comes with bounds checking.  We
-have to start `count` at 0 to give the optimizer a chance to notice that
-it cannot exceed `counts.len()`, and elide bounds checking; but
-then we need the `if` statement to start things off. (The cost of the
-bounds check would not actually be detectable here.)
+have to start `count` at 0 to give the optimizer a chance to notice
+that it cannot exceed `i`, and elide bounds checking; but then we need
+the `if` statement to start things off.^[The cost of the bounds check
+would not actually be detectable here.]
 
 I was astonished to find that constructing the C++ `counts` vector with
 a size argument was much, much slower than default-constructing and
 then resizing it, as above. (This was with g++-5.3.1.)
 
 The program to this point is all setup, accounting for a small fraction
-of run time. Using `<map>` or `BTreeMap`, respectively, would make this
-last fragment unnecessary, in exchange for 3% more total run time.
+of run time. Using `<map>` or `BTreeMap`, respectively, to store `sevens`
+and `counts` would make this last fragment unnecessary, in exchange for
+at least 3% more total run time.
 
 Rust's convenience operations for booleans, by the way, are curiously
 neglected, vs. `Result` and `Option`.  For example, some code would read
@@ -303,24 +309,24 @@ the `bits` array, one per element, so that subsequent loops can be
 unrolled and executed out-of-order. (Optimizers actually seem able to
 do this all by themselves, but the code is shorter this way, and maybe
 easier to understand.)  Rust's `trailing_zeros()` maps to the machine
-instruction `CTZ`.  C++ offers no direct equivalent, but
-`bitset<>::count()` serves.
+instruction `CTZ`.  C++ offers no direct equivalent, but given a bit of
+arithmetic `bitset<>::count()` serves.
 
 The "`.filter`" line is executed 190M times.  Only some 720K
 iterations reach the "`.fold()`", but the innermost loop runs 5M
 times, and `*score` is actually incremented 3M times.  That loop is
-where the program spends more time than anywhere else.  The "`fold()`",
-with its `scores` state passed along from one iteration to the next,
-is much faster than the equivalent loop with outer-scope state
-variables.  The `words` iterator is "lazy", but the "`fold()`" call
-drives it to completion.
+where the program spends more time than anywhere else.  The
+"`fold()`", with its `scores` state passed along from one iteration to
+the next, is much faster than the equivalent loop with outer-scope
+state variables.  The `words` iterator is "lazy", but the "`fold()`"
+call drives it to completion.
 
 I found that iterating over an array with (e.g.) "`array.iter()`" was much
 faster than with "`&array`", although it should be the same. I suppose
 that will be fixed someday. Curiously, changing `scores` to an array of
-16-bit values slows down earlier versions of the C++ program by quite a
-large amount -- almost 10% in some tests -- as the compiler yields to
-temptation and puts `scores` in an XMM register. The Rust program was
+16-bit values slowed down (earlier versions of) the C++ program by quite
+a large amount -- almost 10% in some tests -- as the compiler yields to
+temptation and forces `scores` into an XMM register. The Rust program was
 also affected, but less so.
 
 The second phase of the main loop does output based on the scores
@@ -364,7 +370,7 @@ of `u8` bytes instead of proper Rust characters because operations on
 character and string types are slowed by runtime error checking and
 conversions.  (The algorithm used here only works with ASCII anyhow.)
 Unlike in the C++ code, the `out` elements are initialized twice
-(although it's possible the optimizer elides it).  People complain
+(although it's possible the optimizer elides that).  People complain
 online about the few choices available for initializing arrays, which
 often requires the arrays to be made unnecessarily mutable.
 
@@ -378,23 +384,25 @@ itself, or new microcode will fix it, but I'm amazed that Intel released
 Haswell that way.^[Maybe I shouldn't be: <http://danluu.com/cpu-bugs/>]
 I don't know yet if it Intel fixed it in Broadwell or Skylake.
 
-Rust has some rough edges, but coding in it was kind of fun. As with
-C++, if a Rust program compiles at all, it generally works, more or
-less, but perhaps more. Rust's support for generics is improving, but
-is still well short of what a Rusty STL would need. The compiler was
-slow, but they're working hard on that, and I believe its speed will
-be unremarkable by this time next year. (I could forgive its slowness
-if it kept its opinions on redundant parentheses to itself.)  Rust's
-iterator primitives string together nicely.
+Rust has some rough edges, but coding in it was kind of fun.^[The low
+points were haggling with the compiler over where `&` was allowed or
+required.] As with C++, if a Rust program compiles at all, it
+generally works, more or less (but perhaps more). Rust's support for
+generics is improving, but is still well short of what a Rusty STL
+would need. The compiler was slow, but they're working hard on that,
+and I believe its speed will be unremarkable by this time next
+year. (I could forgive its slowness if it kept its opinions on
+redundant parentheses to itself.)  Rust's iterator primitives string
+together nicely.
 
 It is a signal achievement to match C++ in low-level performance and
 brevity while surpassing it in safety, with reasonable prospects to match
 its expressive power in the foreseeable future. C++ is a rapidly moving
-target, held back only by legacy compatibility requirements, so Rust
-will need to keep moving fast just to keep up.  While Rust could "jump
-the shark" any time, thus far there's every reason to expect to see,
-ten years on, recruiters advertising for warm bodies with ten years'
-production experience coding Rust.
+target, held back only by legacy compatibility requirements and committee
+politics, so Rust will need to keep moving fast just to keep up.  While
+Rust could "jump the shark" any time, thus far there's every reason to
+expect to see, ten years on, recruiters advertising for warm bodies with
+ten years' production experience coding Rust.
 
 [Thanks to Steve Klabnik, `eddyb`, `leonardo`, `huon`, `comex`,
 `marcianix`, and `alexeiz` for major improvements to the code and
