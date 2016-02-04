@@ -24,7 +24,7 @@ Few programs get this much attention to optimization.
 
 The C++ version now runs four times as fast as when I started; about as
 fast, I think, as it can be made without making it longer, or parallel,
-or using third-party libraries. In 75 ms on modern hardware, it performs
+or using third-party libraries. In 90 ms on modern hardware, it performs
 some 190 million basic operations (at a cycle per iteration (!)), filtering
 to 5 million more-complex operations (at under 16 cycles per). Meanwhile,
 the Rust program does about the same operations in about the same time:
@@ -114,7 +114,7 @@ the character sequence hidden inside the (`Option`-wrapped) `String`
 produced by `nth()`, so that `match` will have something it can compare
 directly to the built-in literal string `"-"`.
 
-I don't mind locking `io::stdin`, to get faster input, but requiring
+I don't mind locking `io::stdin` to get faster input, but requiring
 that the call to `lock()` be in a separate statement is weird.
 
 Data structure and input setup follows, along with the input loop header.
@@ -313,7 +313,7 @@ where the program spends more time than anywhere else.  The "`fold()`",
 with its `scores` state passed along from one iteration to the next,
 is much faster than the equivalent loop with outer-scope state
 variables.  The `words` iterator is "lazy", but the "`fold()`" call
-drives the it to completion.
+drives it to completion.
 
 I found that iterating over an array with (e.g.) "`array.iter()`" was much
 faster than with "`&array`", although it should be the same. I suppose
