@@ -405,8 +405,9 @@ expect to see, ten years on, recruiters advertising for warm bodies with
 ten years' production experience coding Rust.
 
 [Thanks to Steve Klabnik, `eddyb`, `leonardo`, `huon`, `comex`,
-`marcianix`, and `alexeiz` for major improvements to the code and
-to the article. The mistakes remain mine, all mine. Material alterations:
+`marcianix`, `alexeiz`, and `killercup` for major improvements to the
+code and to the article. The mistakes remain mine, all mine. Material
+alterations:
 
     a. Examples for `then_some` improved
     b. In C++, s/short/int/; Rust s/0u16/0/; resulting in speedup
