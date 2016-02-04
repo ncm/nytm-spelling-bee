@@ -51,9 +51,7 @@ but in a functional style that turns out to run a little faster than if
 transcribed straight from the C++.
 
 As important is what it doesn't use.  It doesn't store the actual words it
-reads, as they are not useful.  It uses ```<map>```, not ```<unordered_map>```,
-because (a) with ```map``` it is *exactly* as fast, but (b) produces more-
-pleasingly ordered output.  It makes only one pass through all the candidate
+reads, as they are not useful.  It makes only one pass through all the candidate
 words for each candidate letter-set.  It discards words on input that cannot
 be solutions.
 
@@ -69,7 +67,8 @@ slowly.
 The Rust version runs almost exactly as fast as the  C++ version.
 
   - puzzlegen.cc     -- fast C++ version
-  - puzzlegen.rs     -- in Rust, reading byte-by-byte
+  - puzzlegen.rs     -- in Rust
+  - article.md       -- pandoc article about comparison
 
 Alternative versions of the programs, found in the variants directory, differ:
 
