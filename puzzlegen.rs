@@ -12,8 +12,8 @@ use std::{fs, io, env, process};
              }))
     };
 
-    let mut words = Vec::with_capacity(1 << 15);
     let mut sevens = Vec::with_capacity(1 << 14);
+    let mut words = Vec::with_capacity(1 << 15);
     let (mut word, mut len, mut ones) = (0u32, 0, 0);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
         if c == b'\n' {
@@ -27,7 +27,7 @@ use std::{fs, io, env, process};
 
     sevens.sort();
     let (mut count, mut prev, mut counts) = (0, 0, vec![0; sevens.len()]);
-    if !sevens.is_empty() { prev = sevens[0]; }
+    if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3 }
     for i in 1..sevens.len() {
         if prev != sevens[i]
             { count += 1; prev = sevens[i]; sevens[count] = prev; }

@@ -14,8 +14,8 @@ extern "C" int main(int argc, char** argv)
     if (!file)
         return std::cerr << "file open failed, \"" << name << "\"\n", 1;
 
-    std::vector<unsigned> words; words.reserve(1<<15);
     std::vector<unsigned> sevens; sevens.reserve(1<<14);
+    std::vector<unsigned> words; words.reserve(1<<15);
     std::bitset<32> word; int len = 0; int ones = 0;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
         if (*in == '\n') {

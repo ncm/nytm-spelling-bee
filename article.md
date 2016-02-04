@@ -127,18 +127,18 @@ Data structure and input setup follows, along with the input loop header.
 C++:
 
 ```cpp
-    std::vector<unsigned> words; words.reserve(1<<15);
     std::vector<unsigned> sevens; sevens.reserve(1<<14);
-    std::bitset<32> word; int len = 0;
+    std::vector<unsigned> words; words.reserve(1<<15);
+    std::bitset<32> word; int len = 0; int ones = 0;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
 ```
 
 Rust:
 
 ```rust
-    let mut words = Vec::with_capacity(1 << 15);
     let mut sevens = Vec::with_capacity(1 << 14);
-    let (mut word, mut len) = (0u32, 0);
+    let mut words = Vec::with_capacity(1 << 15);
+    let (mut word, mut len, mut ones) = (0u32, 0, 0);
     for c in io::BufReader::new(file).bytes().filter_map(Result::ok) {
 ```
 
@@ -164,7 +164,7 @@ C++:
 ```cpp
         if (*in == '\n') {
             if (len >= 5 && ones <= 7)
-                (ones < 7 ? words : sevens).push_back(word.to_ulong());
+                (ones == 7 ? sevens : words).push_back(word.to_ulong());
             word = len = ones = 0;
         } else if (ones != 8 && *in >= 'a' && *in <= 'z') {
             ++len, ones = word.set(25 - (*in - 'a')).count();
@@ -225,7 +225,7 @@ And Rust:
 ```rust
     sevens.sort();
     let (mut count, mut prev, mut counts) = (0, 0, vec![0; sevens.len()]);
-    if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3; }
+    if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3 }
     for i in 1..sevens.len() {
         if prev != sevens[i]
             { count += 1; prev = sevens[i]; sevens[count] = prev; }
