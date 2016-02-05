@@ -237,13 +237,9 @@ These are close to even. In Rust, when working with two elements of
 the same vector, we need to index both elements to avoid an ownership
 conflict with an iterator, but that comes with bounds checking.  We
 have to start `count` at 0 to give the optimizer a chance to notice
-that it cannot exceed `i`, and elide bounds checking; but then we need
-the `if` statement to start things off.^[The cost of the bounds check
-would not actually be detectable here.]
-
-I was astonished to find that constructing the C++ `counts` vector with
-a size argument was much, much slower than default-constructing and
-then resizing it, as above. (This was with g++-5.3.1.)
+that `count` cannot exceed `i`, and elide bounds checking; but then we
+need the `if` statement to start things off.^[The cost of the bounds
+check would not actually be detectable in this program.]
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, to store `sevens`
