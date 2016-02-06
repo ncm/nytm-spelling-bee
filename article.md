@@ -310,8 +310,8 @@ arithmetic `bitset<>::count()` serves.
 
 The "`.filter`" line is executed 190M times.  Only some 720K
 iterations reach the "`.fold()`", but the innermost loop runs 5M
-times, and `*score` is actually incremented 3M times.  That loop is
-where the program spends more time than anywhere else.  The
+times, and `scores[place]` is actually incremented 3M times.  That
+loop is where the program spends more time than anywhere else.  The
 "`fold()`", with its `scores` state passed along from one iteration to
 the next, is much faster than the equivalent loop with outer-scope
 state variables.  The `words` iterator is "lazy", but the "`fold()`"
