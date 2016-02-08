@@ -371,14 +371,15 @@ online about the few choices available for initializing arrays, which
 often requires the arrays to be made unnecessarily mutable.
 
 Curiously, most variations of the C++ version run only half as fast as
-they should on Intel Haswell chips, probably because of branch prediction
-failures^[<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67153>].
-(Wrapping "`!(word & ~seven)`" in `__builtin_expect(..., false)` works
-around the hardware bug by placing instructions differently.) It's
-possible that Gcc will learn someday to step around the Haswell bug by
-itself, or new microcode will fix it, but I'm amazed that Intel released
-Haswell that way.^[Maybe I shouldn't be: <http://danluu.com/cpu-bugs/>]
-I don't know yet if it Intel fixed it in Broadwell or Skylake.
+they should on Intel Haswell chips, probably because of branch
+prediction failures^[<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67153>].
+(Building with Clang doesn't help, but wrapping "`!(word & ~seven)`"
+in `__builtin_expect(..., false)` works around the hardware bug by
+placing instructions differently.) It's possible that Gcc will learn
+someday to step around the Haswell bug by itself, or new microcode
+will fix it, but I'm amazed that Intel released Haswell that
+way.^[Maybe I shouldn't be: <http://danluu.com/cpu-bugs/>] I don't
+know yet if it Intel fixed it in Broadwell or Skylake.
 
 Rust has some rough edges, but coding in it was kind of fun.^[The low
 points were haggling with the compiler over where `&` was allowed or
