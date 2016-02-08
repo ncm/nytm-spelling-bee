@@ -28,7 +28,7 @@ extern "C" int main(int argc, char** argv)
     }
 
     std::sort(sevens.begin(), sevens.end());
-    std::vector<int> counts; counts.resize(sevens.size());
+    std::vector<short> counts(sevens.size());
     int count = -1; unsigned prev = 0;
     for (auto seven : sevens) {
         if (prev != seven)
@@ -38,7 +38,7 @@ extern "C" int main(int argc, char** argv)
 
     for (; count >= 0; --count) {
         unsigned const seven = sevens[count];
-        int bits[7], scores[7];
+        short bits[7], scores[7];
         for (unsigned rest = seven, place = 7; place-- != 0; rest &= rest - 1) {
             bits[place] = std::bitset<32>((rest & ~(rest - 1)) - 1).count();
             scores[place] = counts[count];

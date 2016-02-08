@@ -26,7 +26,7 @@ use std::{fs, io, env, process};
     }
 
     sevens.sort();
-    let (mut count, mut prev, mut counts) = (0, 0, vec![0; sevens.len()]);
+    let (mut count, mut prev, mut counts) = (0, 0, vec![0u16; sevens.len()]);
     if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3 }
     for i in 1..sevens.len() {
         if prev != sevens[i]
@@ -38,14 +38,14 @@ use std::{fs, io, env, process};
     let mut sink = io::BufWriter::new(stdout.lock());
     for count in (0..(count + 1)).rev() {
         let seven = sevens[count];
-        let (mut rest, mut bits) = (seven, [0;7]);
+        let (mut rest, mut bits) = (seven, [0u16;7]);
         for place in (0..7).rev()
-            { bits[place] = rest.trailing_zeros(); rest &= rest - 1 }
+            { bits[place] = rest.trailing_zeros() as u16; rest &= rest - 1 }
         let scores = words.iter()
             .filter(|&word| word & !seven == 0)
             .fold([counts[count];7], |mut scores, &word| {
                 for place in 0..7
-                     { scores[place] += (word >> bits[place]) & 1; }
+                     { scores[place] += ((word >> bits[place]) & 1) as u16; }
                 scores
             });
 
