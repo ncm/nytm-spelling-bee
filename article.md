@@ -1,7 +1,7 @@
 ---
 title: "Rust vs. C++: Fine-grained Performance"
 author: "Nathan Myers <ncm@cantrip.org>"
-date: 2016-01-25 updated 2016-02-03
+date: 2016-01-25 updated 2016-02-07
 lang: en
 ...
 
@@ -211,7 +211,7 @@ C++:
 
 ```cpp
     std::sort(sevens.begin(), sevens.end());
-    std::vector<unsigned> counts; counts.resize(sevens.size());
+    std::vector<short> counts(sevens.size());
     int count = -1; unsigned prev = 0;
     for (auto seven : sevens) {
         if (prev != seven)
@@ -224,7 +224,7 @@ And Rust:
 
 ```rust
     sevens.sort();
-    let (mut count, mut prev, mut counts) = (0, 0, vec![0; sevens.len()]);
+    let (mut count, mut prev, mut counts) = (0, 0, vec![0u16; sevens.len()]);
     if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3 }
     for i in 1..sevens.len() {
         if prev != sevens[i]
@@ -267,7 +267,7 @@ C++:
 ```cpp
     for (; count >= 0; --count) {
         unsigned const seven = sevens[count];
-        int bits[7], int scores[7];
+        short bits[7], int scores[7];
         for (unsigned rest = seven, place = 7; place-- != 0; rest &= rest - 1) {
             bits[place] = std::bitset<32>((rest & ~(rest - 1)) - 1).count();
             scores[place] = counts[count];
@@ -285,14 +285,14 @@ And Rust:
     let mut sink = io::BufWriter::new(stdout.lock());
     for count in (0..(count + 1)).rev() {
         let seven = sevens[count];
-        let (mut rest, mut bits) = (seven, [0;7]);
+        let (mut rest, mut bits) = (seven, [0u16;7]);
         for place in (0..7).rev()
-            { bits[place] = rest.trailing_zeros(); rest &= rest - 1 }
+            { bits[place] = rest.trailing_zeros() as u16; rest &= rest - 1 }
         let scores = words.iter()
             .filter(|&word| word & !seven == 0)
             .fold([counts[count];7], |mut scores, &word| {
                 for place in 0..7
-                     { scores[place] += (word >> bits[place]) & 1; }
+                     { scores[place] += ((word >> bits[place]) & 1) as u16; }
                 scores
             });
 ```
@@ -413,4 +413,5 @@ alterations:
     f. Enable unrolled/out-of-order loops by precomputing bit positions
     g. Replace innermost-loop conditional branch with a bitwise operation
     h. Improve state machine test for valid word characters
+    i. s/int/short/ arrays, both C++ and Rust; no slowdown.
 ]
