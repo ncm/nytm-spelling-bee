@@ -267,7 +267,7 @@ C++:
 ```cpp
     for (; count >= 0; --count) {
         unsigned const seven = sevens[count];
-        short bits[7], int scores[7];
+        short bits[7], scores[7];
         for (unsigned rest = seven, place = 7; place-- != 0; rest &= rest - 1) {
             bits[place] = std::bitset<32>((rest & ~(rest - 1)) - 1).count();
             scores[place] = counts[count];
