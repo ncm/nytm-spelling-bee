@@ -10,7 +10,7 @@ extern "C" int main(int argc, char** argv)
 {
     std::string name = (argc > 1) ? argv[1] : "/usr/share/dict/words";
     std::ifstream fs;
-    std::istream& file = name == "-" ? std::cin : (fs.open(name), fs);
+    std::istream& file = (name == "-") ? std::cin : (fs.open(name), fs);
     if (!file)
         return std::cerr << "file open failed, \"" << name << "\"\n", 1;
 

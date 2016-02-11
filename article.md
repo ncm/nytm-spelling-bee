@@ -1,7 +1,7 @@
 ---
 title: "Rust vs. C++: Fine-grained Performance"
 author: "Nathan Myers <ncm@cantrip.org>"
-date: 2016-01-25 updated 2016-02-07
+date: 2016-01-25 updated 2016-02-11
 lang: en
 ...
 
@@ -28,16 +28,16 @@ The C++ version now runs more than three times as fast as when I
 started; about as fast, I think, as it can be made without making it
 longer,^[Allowed to grow without bound, this article would never have
 been published] or parallel,^[Few would say that threading is what C++
-has traditionally done best, in either sense] or using third-party
-libraries. In 90 ms on modern hardware, it performs some 190 million
-basic operations (at 1.5 cycles per iteration (!)), filtering to 5
-million more-complex operations (at 7 cycles per). Meanwhile, the
-Rust program does about the same operations in *about the same time*:
-a few percent faster or slower on various hardware. Many variations
-that seemed like they ought to run the same speed or faster turned
-out slower, often much slower.  By contrast, in C++ it was hard to
-discover a way to express the same operations differently and get a
-different run time.
+does best, in either sense] or using third-party libraries. In 90 ms
+on modern hardware, it performs some 190 million basic operations (at
+1 cycle per iteration (!)), filtering to 5 million more-complex
+operations (at ~16 cycles per bit). Meanwhile, the Rust program does
+about the same operations in *about the same time*: a few percent
+faster or slower on various hardware.  Many variations that seemed
+like they ought to run the same speed or faster turned out slower,
+often much slower.  By contrast, in C++ it was hard to discover a way
+to express the same operations differently and get a different run
+time.
 
 Below, I present each program in fragments. The code may be denser than
 you are used to, just to keep it to one printed page. When I write "much
@@ -82,7 +82,7 @@ C++:
 int main(int argc, char** argv) {
     std::string name = (argc > 1) ? argv[1] : "/usr/share/dict/words";
     std::ifstream fs;
-    std::istream& file = name == "-" ? std::cin : (fs.open(name), fs);
+    std::istream& file = (name == "-") ? std::cin : (fs.open(name), fs);
     if (!file)
         return std::cerr << "file open failed: \"" << name << "\"\n", 1;
 ```
@@ -235,11 +235,12 @@ And Rust:
 
 These are close to even. In Rust, when working with two elements of
 the same vector, we need to index both elements to avoid an ownership
-conflict with an iterator, but that comes with bounds checking.  We
-have to start `count` at 0 to give the optimizer a chance to notice
-that `count` cannot exceed `i`, and elide bounds checking; but then we
-need the `if` statement to start things off.^[The cost of the bounds
-check would not actually be detectable in this program.]
+conflict with an iterator, but that comes with bounds checking.  Rust
+wants indices unsigned, but we have to start `count` at 0 (not `!0`)
+to give the optimizer a chance to notice that `count` cannot exceed `i`,
+and elide bounds checking. Then we need the extra `if` statement to
+start out right.^[The bounds check is not actually elided, yet, and in
+any case the time to run it is not detectable here.]
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, to store `sevens`
@@ -308,15 +309,16 @@ easier to understand.)  Rust's `trailing_zeros()` maps to the machine
 instruction `CTZ`.  C++ offers no direct equivalent, but given a bit of
 arithmetic `bitset<>::count()` serves.
 
-The "`.filter`" line is executed 190M times; each program spends 90%
-of its time here.  In one sense, this is only examining how well the
-languages execute these two lines; but that is only because both race
-through the rest of the code.  Only some 720K iterations reach the
-"`.fold()`", but the innermost loop runs 5M times, and `scores[place]`
-is actually incremented 3M times. The "`fold()`", with its `scores`
-state passed along from one iteration to the next, is much faster than
-the equivalent loop with outer-scope state variables.  The `words`
-iterator is "lazy", but the "`fold()`" call drives it to completion.
+The "`.filter`" line is executed 190M times; each program spends 90+%
+of its time here, in just four instructions.  In one sense, this exercise
+is only examining how well the languages execute these two lines; but that
+is only because both race through the rest of the code.  Only some 720K
+iterations reach the "`.fold()`", but the innermost loop runs 5M times,
+and `scores[place]` is actually incremented 3M times. The "`fold()`",
+with its `scores` state passed along from one iteration to the next, is
+much faster than the equivalent loop with outer-scope state variables.
+The `words` iterator is "lazy", but the "`fold()`" call drives it to
+completion.
 
 I found that iterating over an array with (e.g.) "`array.iter()`" was
 much faster than with "`&array`", although it should be the same. (I
@@ -370,16 +372,16 @@ Unlike in the C++ code, the `out` elements are initialized twice
 online about the few choices available for initializing arrays, which
 often requires the arrays to be made unnecessarily mutable.
 
-Curiously, most variations of the C++ version run only half as fast as
-they should on Intel Haswell chips, probably because of branch
-prediction failures^[<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67153>].
-(Building with Clang doesn't help, but wrapping "`!(word & ~seven)`"
-in `__builtin_expect(..., false)` works around the hardware bug by
-placing instructions differently.) It's possible that Gcc will learn
-someday to step around the Haswell bug by itself, or new microcode
-will fix it, but I'm amazed that Intel released Haswell that
-way.^[Maybe I shouldn't be: <http://danluu.com/cpu-bugs/>] I don't
-know yet if it Intel fixed it in Broadwell or Skylake.
+Curiously, most variations of the C++ version run only half as fast
+as they should on Intel Haswell chips, when built with Gcc or Clang,
+^[<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67153>] a consequence
+of an instruction-sequence choice that makes the main inner loop take
+two cycles instead of one. (Wrapping "`!(word & ~seven)`" in
+`__builtin_expect(..., false)` helps.) It's possible that Gcc will
+learn someday to generate better code for Haswell and newer Skylake
+chips; that the Rust code was not affected really traces to luck.
+I found frequently that compiling at optimization level 3 was slower
+with both compilers.
 
 Rust has some rough edges, but coding in it was kind of fun.^[The low
 points were haggling with the compiler over where `&` was allowed or
@@ -415,4 +417,5 @@ alterations:
     g. Replace innermost-loop conditional branch with a bitwise operation
     h. Improve state machine test for valid word characters
     i. s/int/short/ arrays, both C++ and Rust; no slowdown.
+    j. Correct attribution of slow Haswell code.
 ]
