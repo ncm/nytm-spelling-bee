@@ -1,7 +1,7 @@
 ---
 title: "Rust vs. C++: Fine-grained Performance"
 author: "Nathan Myers <ncm@cantrip.org>"
-date: 2016-01-25 updated 2016-02-11
+date: 2016-01-25 updated 2016-02-20
 lang: en
 ...
 
@@ -15,9 +15,9 @@ those questions, but I can write programs.
 
 I had a C++ program that was just the right length to experiment with --
 one printed page -- and that did nothing tricky to express in an unfamilar
-language. (It generates all possible versions of a puzzle called
-"Spelling Bee" found in the *New York Times Magazine*.) I began by
-transcribing the program straight across to equivalent Rust code.
+language. (It generates all possible versions of a puzzle by Frank Longo
+called "Spelling Bee", found in the *New York Times Magazine*.) I began
+by transcribing the program straight across to equivalent Rust code.
 The Rust program turned out close to the same length, but only half
 as fast. As I made the Rust code more idiomatic, it got faster. At the
 same time, I worked to speed up the C++ program, still hewing to the
@@ -32,7 +32,7 @@ does best, in either sense] or using third-party libraries. In 90 ms
 on modern hardware, it performs some 190 million basic operations (at
 1 cycle per iteration (!)), filtering to 5 million more-complex
 operations (at ~16 cycles per bit). Meanwhile, the Rust program does
-about the same operations in *about the same time*: a few percent
+about the same operations in *about the same time*: just a few percent
 faster or slower on various hardware.  Many variations that seemed
 like they ought to run the same speed or faster turned out slower,
 often much slower.  By contrast, in C++ it was hard to discover a way
@@ -97,7 +97,7 @@ fn main() {
         "-" => Box::new(stdin.lock()),
         _ => Box::new(fs::File::open(fname).unwrap_or_else(|err| {
                  writeln!(io::stderr(), "{}: \"{}\"", err, fname).unwrap();
-                 process::exit(1);
+                 process::exit(1)
              }))
     };
 ```
@@ -177,7 +177,7 @@ And Rust:
         if c == b'\n' {
             if len >= 5 && ones <= 7
                 { if ones == 7 { sevens.push(word) } else { words.push(word) } }
-            word = 0; len = 0; ones = 0;
+            word = 0; len = 0; ones = 0
         } else if ones != 8 && c >= b'a' && c <= b'z' {
             word |= 1 << (25 - (c - b'a')); len += 1; ones = word.count_ones()
         } else { ones = 8 }
@@ -228,19 +228,20 @@ And Rust:
     if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3 }
     for i in 1..sevens.len() {
         if prev != sevens[i]
-            { count += 1; prev = sevens[i]; sevens[count] = prev; }
-        counts[count] += 3;
+            { count += 1; prev = sevens[i]; sevens[count] = prev }
+        counts[count] += 3
     }
 ```
 
 These are close to even. In Rust, when working with two elements of
 the same vector, we need to index both elements to avoid an ownership
-conflict with an iterator, but that comes with bounds checking.  Rust
-wants indices unsigned, but we have to start `count` at 0 (not `!0`)
-to give the optimizer a chance to notice that `count` cannot exceed `i`,
-and elide bounds checking. Then we need the extra `if` statement to
-start out right.^[The bounds check is not actually elided, yet, and in
-any case the time to run it is not detectable here.]
+conflict with an iterator, but that comes with bounds checking, at least
+for `count`. (The optimizer ought to know that `i` is in bounds.) Rust
+wants indices unsigned, but we have to start `count` at 0 (not `!0`,
+i.e. all 1s) so the optimizer has a chance to notice that `count` cannot
+exceed `i`, and so elide bounds checking on it, too. Then we need the
+extra `if` check to start out right.^[The bounds checks are not actually
+elided, yet, and in any case the time to run them is not detectable here.]
 
 The program to this point is all setup, accounting for a small fraction
 of run time. Using `<map>` or `BTreeMap`, respectively, to store `sevens`
@@ -260,7 +261,7 @@ instead of
 The body of `then_some()` is just a one-liner, but to be useful it needs
 to be standard.^[I do not dare to propose "`ergo_some()`".]
 
-The main loop is presented below, in two phases.  The first half is where
+The main loop is presented below, in two phases.  The first phase is where
 the program spends practically all its time.
 
 C++:
@@ -293,7 +294,7 @@ And Rust:
             .filter(|&word| word & !seven == 0)
             .fold([counts[count];7], |mut scores, &word| {
                 for place in 0..7
-                     { scores[place] += ((word >> bits[place]) & 1) as u16; }
+                     { scores[place] += ((word >> bits[place]) & 1) as u16 }
                 scores
             });
 ```
@@ -309,23 +310,23 @@ easier to understand.)  Rust's `trailing_zeros()` maps to the machine
 instruction `CTZ`.  C++ offers no direct equivalent, but given a bit of
 arithmetic `bitset<>::count()` serves.
 
-The "`.filter`" line is executed 190M times; each program spends 90+%
-of its time here, in just four instructions.  In one sense, this exercise
-is only examining how well the languages execute these two lines; but that
-is only because both race through the rest of the code.  Only some 720K
-iterations reach the "`.fold()`", but the innermost loop runs 5M times,
-and `scores[place]` is actually incremented 3M times. The "`fold()`",
-with its `scores` state passed along from one iteration to the next, is
-much faster than the equivalent loop with outer-scope state variables.
-The `words` iterator is "lazy", but the "`fold()`" call drives it to
-completion.
+The "`.filter`" line is executed 190M times; the programs spend 90+% of
+their time here, in just four instructions.  In one sense, this whole
+exercise is only examining how well the languages execute these two
+lines; but that is only because both race through the rest of the code.
+Only some 720K iterations reach the "`.fold()`", but the innermost loop
+runs 5M times, and `scores[place]` is actually incremented 3M times. The
+"`fold()`", with its `scores` state passed along from one iteration to
+the next, is much faster than the equivalent loop with outer-scope state
+variables. The `words` iterator is "lazy", but the "`fold()`" call drives
+it to completion.
 
 I found that iterating over an array with (e.g.) "`array.iter()`" was
 much faster than with "`&array`", although it should be the same. (I
-suppose that will be fixed soon.) Curiously, changing `scores` to an
-array of 16-bit values slowed down earlier versions of the C++ program
+suppose that will be fixed soon.) Curiously, using 16-bit elements for
+`bits` and `scores` slowed down earlier versions of the C++ program
 by quite a large amount -- 8% in some tests. The Rust program was also
-affected, but less so.  Current versions are unaffected.
+affected, but less so.  Current versions run the same, `short` or `int`.
 
 The second phase of the main loop does output based on the scores
 accumulated above.
@@ -355,7 +356,7 @@ And Rust:
             out[place] = a + (25 - bits[place]) as u8
         }
         if any
-            { sink.write(&out).unwrap(); };
+            { sink.write(&out).unwrap(); }
     }
 }
 ```
@@ -365,7 +366,7 @@ This is even, too.
 The loop walks the `out` array, pairing each byte with its
 corresponding score and a bit position from `bits`. The output is built
 of `u8` bytes instead of proper Rust characters because operations on
-character and string types are slowed by runtime error checking and
+character and string types would be slowed by runtime error checks and
 conversions.  (The algorithm used here only works with ASCII anyhow.)
 Unlike in the C++ code, the `out` elements are initialized twice
 (although it's possible the optimizer elides that).  People complain
@@ -377,11 +378,9 @@ as they should on Intel Haswell chips, when built with Gcc or Clang,
 ^[<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67153>] a consequence
 of an instruction-sequence choice that makes the main inner loop take
 two cycles instead of one. (Wrapping "`!(word & ~seven)`" in
-`__builtin_expect(..., false)` helps.) It's possible that Gcc will
+`__builtin_expect(..., false)` helps.)  It's possible that Gcc will
 learn someday to generate better code for Haswell and newer Skylake
 chips; that the Rust code was not affected really traces to luck.
-I found frequently that compiling at optimization level 3 was slower
-with both compilers.
 
 Rust has some rough edges, but coding in it was kind of fun.^[The low
 points were haggling with the compiler over where `&` was allowed or
@@ -389,19 +388,19 @@ required.] As with C++, if a Rust program compiles at all, it
 generally works, more or less (but perhaps more). Rust's support for
 generics is improving, but is still well short of what a Rusty STL
 would need. The compiler was slow, but they're working hard on that,
-and I believe its speed will be unremarkable by this time next
-year. (I could forgive its slowness if it kept its opinions on
-redundant parentheses to itself.)  Rust's iterator primitives string
-together nicely.
+and I believe its speed will be unremarkable by this time next year.
+(I could forgive its slowness if it kept its opinions on redundant
+parentheses to itself.)  Rust's iterator primitives string together
+nicely.
 
 It is a signal achievement to match C++ in low-level performance and
-brevity while surpassing it in safety, with reasonable prospects to match
-its expressive power in the foreseeable future. C++ is a rapidly moving
-target, held back only by legacy compatibility requirements and committee
-politics, so Rust will need to keep moving fast just to keep up.  While
-Rust could "jump the shark" any time, thus far there's every reason to
-expect to see, ten years on, recruiters advertising for warm bodies with
-ten years' production experience coding Rust.
+brevity while surpassing it in safety, with reasonable prospects to
+match its expressive power in the foreseeable future. C++ is a rapidly
+moving target, held back only by legacy compatibility requirements and
+committee politics, so Rust will need to keep moving fast just to keep
+up.  While Rust could "jump the shark" any time, thus far there's every
+reason to expect to see, ten years on, recruiters advertising for warm
+bodies with ten years' production experience coding Rust.
 
 [Thanks to Steve Klabnik, `eddyb`, `leonardo`, `huon`, `comex`,
 `marcianix`, `alexeiz`, and `killercup` for major improvements to the

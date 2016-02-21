@@ -8,7 +8,7 @@ use std::{fs, io, env, process};
         "-" => Box::new(stdin.lock()),
         _ => Box::new(fs::File::open(fname).unwrap_or_else(|err| {
                  writeln!(io::stderr(), "{}: \"{}\"", err, fname).unwrap();
-                 process::exit(1);
+                 process::exit(1)
              }))
     };
 
@@ -19,7 +19,7 @@ use std::{fs, io, env, process};
         if c == b'\n' {
             if len >= 5 && ones <= 7
                 { if ones == 7 { sevens.push(word) } else { words.push(word) } }
-            word = 0; len = 0; ones = 0;
+            word = 0; len = 0; ones = 0
         } else if ones != 8 && c >= b'a' && c <= b'z' {
             word |= 1 << (25 - (c - b'a')); len += 1; ones = word.count_ones()
         } else { ones = 8 }
@@ -30,8 +30,8 @@ use std::{fs, io, env, process};
     if !sevens.is_empty() { prev = sevens[0]; counts[0] = 3 }
     for i in 1..sevens.len() {
         if prev != sevens[i]
-            { count += 1; prev = sevens[i]; sevens[count] = prev; }
-        counts[count] += 3;
+            { count += 1; prev = sevens[i]; sevens[count] = prev }
+        counts[count] += 3
     }
 
     let stdout = io::stdout();
@@ -45,7 +45,7 @@ use std::{fs, io, env, process};
             .filter(|&word| word & !seven == 0)
             .fold([counts[count];7], |mut scores, &word| {
                 for place in 0..7
-                     { scores[place] += ((word >> bits[place]) & 1) as u16; }
+                     { scores[place] += ((word >> bits[place]) & 1) as u16 }
                 scores
             });
 
@@ -56,7 +56,7 @@ use std::{fs, io, env, process};
             out[place] = a + (25 - bits[place]) as u8
         }
         if any
-            { sink.write(&out).unwrap(); };
+            { sink.write(&out).unwrap(); }
     }
 }
 #[cfg(not(main))] fn main() { rs_main(); }
