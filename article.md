@@ -1,7 +1,7 @@
 ---
 title: "Rust vs. C++: Fine-grained Performance"
 author: "Nathan Myers <ncm@cantrip.org>"
-date: 2016-01-25 updated 2016-02-20
+date: 2016-01-25 updated 2016-02-21
 lang: en
 ...
 
@@ -29,12 +29,12 @@ started; about as fast, I think, as it can be made without making it
 longer,^[Allowed to grow without bound, this article would never have
 been published] or parallel,^[Few would say that threading is what C++
 does best, in either sense] or using third-party libraries. In 90 ms
-on modern hardware, it performs some 190 million basic operations (at
-1 cycle per iteration (!)), filtering to 5 million more-complex
-operations (at ~16 cycles per bit). Meanwhile, the Rust program does
-about the same operations in *about the same time*: just a few percent
-faster or slower on various hardware.  Many variations that seemed
-like they ought to run the same speed or faster turned out slower,
+on modern hardware, it performs some 190 million basic operations (at an
+astonishing 1 cycle per iteration), filtering to 5 million more-complex
+operations (at an astonishing 28 cycles per bit). Meanwhile, the Rust
+program does about the same operations in *about the same time*: just a
+few percent faster or slower on various hardware.  Many variations that
+seemed like they ought to run the same speed or faster turned out slower,
 often much slower.  By contrast, in C++ it was hard to discover a way
 to express the same operations differently and get a different run
 time.
@@ -310,16 +310,17 @@ easier to understand.)  Rust's `trailing_zeros()` maps to the machine
 instruction `CTZ`.  C++ offers no direct equivalent, but given a bit of
 arithmetic `bitset<>::count()` serves.
 
-The "`.filter`" line is executed 190M times; the programs spend 90+% of
-their time here, in just four instructions.  In one sense, this whole
-exercise is only examining how well the languages execute these two
-lines; but that is only because both race through the rest of the code.
-Only some 720K iterations reach the "`.fold()`", but the innermost loop
-runs 5M times, and `scores[place]` is actually incremented 3M times. The
-"`fold()`", with its `scores` state passed along from one iteration to
-the next, is much faster than the equivalent loop with outer-scope state
-variables. The `words` iterator is "lazy", but the "`fold()`" call drives
-it to completion.
+The "`.filter`" line is executed 190M times; the programs spend ~60%
+of their time in just four instructions, and almost all the rest in
+the loop inside.  In one sense, this whole exercise only examines how
+well the languages execute these two lines; but that is only because
+both race through the rest of the code.  Only some 720K iterations
+reach the "`.fold()`", but the innermost loop runs 5M times, and
+`scores[place]` is actually incremented 3M times. The "`fold()`", with
+its `scores` state passed along from one iteration to the next, is
+much faster than the equivalent loop with outer-scope state variables.
+The `words` iterator is "lazy", but the "`fold()`" call drives it to
+completion.
 
 I found that iterating over an array with (e.g.) "`array.iter()`" was
 much faster than with "`&array`", although it should be the same. (I
@@ -417,4 +418,5 @@ alterations:
     h. Improve state machine test for valid word characters
     i. s/int/short/ arrays, both C++ and Rust; no slowdown.
     j. Correct attribution of slow Haswell code.
+    k. Correct cycle counts.  Again.
 ]
