@@ -34,8 +34,7 @@ use std::{fs, io, env, process};
         counts[count] += 3
     }
 
-    let stdout = io::stdout();
-    let mut sink = io::BufWriter::new(stdout.lock());
+    let mut stdout = io::stdout();
     for count in (0..(count + 1)).rev() {
         let seven = sevens[count];
         let (mut rest, mut bits) = (seven, [0u16;7]);
@@ -56,7 +55,7 @@ use std::{fs, io, env, process};
             out[place] = a + (25 - bits[place]) as u8
         }
         if any
-            { sink.write(&out).unwrap(); }
+            { stdout.write(&out).unwrap(); }
     }
 }
 #[cfg(not(main))] fn main() { rs_main(); }
