@@ -1,19 +1,19 @@
-```puzzlegen``` is a simple program that generates all
-possible versions of an anagram puzzle as found in the New York Times
-Magazine, that they call "Spelling Bee".  These puzzles present a circle
-of six letters around a seventh, central letter, like
+```puzzlegen``` is a simple program that generates all possible versions 
+of an anagram puzzle by Frank Longo called "Spelling Bee", found in the 
+New York Times Magazine.  These puzzles present a circle of six letters 
+around a seventh, central letter, like
 ```
     M   O
   P   I   S
     T   U
 ```
-The goal of the puzzle is to find words that use only the letters in the
-set, and that all use the central letter.  Words that use all the letters
-score extra: one point for each lesser word, and three for each that uses
-all seven.  For example, for the letters above, "mitosis" scores 1,
-"optimums" 3.  The program only emits puzzles that that it finds have
-between 26 and 32 points possible, given the words in its list.
-Typically one should be satisfied to find 20 points' worth.
+The goal of the puzzle is to find words of five or more letters that use 
+only the letters in the set, and that all use the central letter.  Words 
+that use all the letters score extra: one point for each lesser word, and 
+three for each that uses all seven.  For example, for the letters above, 
+"mitosis" scores 1, "optimums" 3.  The program only emits puzzles that that 
+it finds have between 26 and 32 points possible, given the words in its list.
+Typically one is advised to be satisfied to find 20 points' worth.
 
 Output is a list of seven-letter sets, like
 ```
@@ -26,7 +26,7 @@ Output is a list of seven-letter sets, like
 ```
 Capital letters in output are candidates for the central letter.
 
-```solve.sh``` is a much simpler program that, given such a puzzle,
+```solve.sh``` is a much simpler script that, given such a puzzle,
 lists words found in /usr/share/dict/words that solve the puzzle. An
 excerpt from its output for the puzzle above is,
 ```
@@ -59,8 +59,8 @@ It does depend on a runtime character set with contiguous alphabetic
 characters, and, by default, a ```/usr/share/dict/words``` file in the right
 place.
 
-The C++ version puzzlegen-old.cc, built with gcc-5, runs faster on Intel
-Haswell than other C++ versions, while all the C++ versions run about the
+The variation puzzlegen-old.cc, built with gcc-8, runs faster on Intel
+Haswell than other variations, while all the C++ variations run about the
 same speed on Westmere.  I.e., on Haswell most versions run artifically
 slowly.
 
