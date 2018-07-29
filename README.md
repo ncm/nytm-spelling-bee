@@ -28,7 +28,7 @@ Output is a list of seven-letter sets, like
 ```
 Capital letters in output are candidates for the central letter.
 
-```solve.sh```, also here, is a much simpler script that, given such a  
+```solve.sh```, also here, is a much simpler script that, given such a
 puzzle, lists words found in /usr/share/dict/words that solve the puzzle. 
 An excerpt from its output for the puzzle above is,
 ```
