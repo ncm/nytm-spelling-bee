@@ -1,4 +1,4 @@
-```puzzlegen``` is a simple program that generates all possible versions 
+```puzzlegen``` is a short program that generates all possible versions 
 of an anagram puzzle by Frank Longo called "Spelling Bee", found in the 
 New York Times Magazine.  These puzzles present a circle of six letters 
 around a seventh, central letter, like
@@ -9,11 +9,11 @@ around a seventh, central letter, like
 ```
 The goal of the puzzle is to find words of five or more letters that use 
 only the letters in the set, and that all use the central letter.  Words 
-that use all the letters score extra: one point for each lesser word, and 
-three for each that uses all seven.  For example, for the letters above, 
-"mitosis" scores 1, "optimums" 3.  The program only emits puzzles that that 
-it finds have between 26 and 32 points possible, given the words in its list.
-Typically one is advised to be satisfied to find 20 points' worth.
+that use all the letters score three points, the rest one.  For example, 
+for the letters above, "mitosis" scores 1, "optimums" 3.  The program only 
+emits puzzles that that it finds have between 26 and 32 points possible, 
+given the words in its list. Typically one is advised to be satisfied to 
+find 20 points' worth, but there is no reason to limit yourself to that.
 
 Output is a list of seven-letter sets, like
 ```
@@ -36,35 +36,35 @@ excerpt from its output for the puzzle above is,
   optimums *
   osmosis
   pimps
+  ...
+  28
 ```
 with three-point words suffixed " *".  (The central letter comes first
 in the command-line argument.)
 
 ### Internals
 
-```puzzlegen``` may be more interesting as an example of optimized modern
-C++14 and Rust coding than as a generator of puzzles.  In C++, it uses bits in
+```puzzlegen``` is perhaps more interesting as an example of optimized modern
+C++ and Rust coding than as a generator of puzzles.  In C++, it uses bits in
 a 32-bit word, via bitset<>, to represent sets of letters, bitwise arithmetic
 to step through the set and qualify words, and new-style for-loops over
 containers.  The Rust version does almost precisely the same operations,
 but in a functional style that turns out to run a little faster than if
-transcribed straight from the C++.
+transcribed straight from the C++, but finally equally as fast as the C++.
 
 As important is what it doesn't use.  It doesn't store the actual words it
-reads, as they are not useful.  It makes only one pass through all the candidate
-words for each candidate letter-set.  It discards words on input that cannot
-be solutions.
+reads, as they are not useful.  It makes only one pass through all the 
+candidate words for each candidate letter-set.  It discards words on input 
+that cannot be solutions.
 
 It does depend on a runtime character set with contiguous alphabetic
-characters, and, by default, a ```/usr/share/dict/words``` file in the right
-place.
+characters, and, by default, a ```/usr/share/dict/words``` file in the 
+right place.
 
 The variation puzzlegen-old.cc, built with gcc-8, runs faster on Intel
 Haswell than other variations, while all the C++ variations run about the
 same speed on Westmere.  I.e., on Haswell most versions run artifically
 slowly.
-
-The Rust version runs almost exactly as fast as the  C++ version.
 
   - puzzlegen.cc     -- fast C++ version
   - puzzlegen.rs     -- in Rust
@@ -77,4 +77,4 @@ Alternative versions of the programs, found in the variants directory, differ:
   - puzzlegen-old.cc -- posted in gcc bug #67153, only version fast on Haswell
   - puzzlegen-str.cc -- reads words into std::string
   - puzzlegen-str.rs -- similarly, reading into a Vec<u8>
-  
+ 
