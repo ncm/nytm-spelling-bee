@@ -1,7 +1,7 @@
-```puzzlegen``` is a short program that generates all possible versions 
-of an anagram puzzle by Frank Longo called "Spelling Bee", found in the 
-New York Times Magazine.  These puzzles present a circle of six letters 
-around a seventh, central letter, like
+```puzzlegen``` is a short program that generates, in as little as 60 ms,
+all possible versions of an anagram puzzle by Frank Longo called "Spelling Bee", 
+as found in the Sunday New York Times Magazine.  These puzzles present a 
+circle of six letters ranged around a seventh, central letter, like
 ```
     M   O
   P   I   S
@@ -9,11 +9,13 @@ around a seventh, central letter, like
 ```
 The goal of the puzzle is to find words of five or more letters that use 
 only the letters in the set, and that all use the central letter.  Words 
-that use all the letters score three points, the rest one.  For example, 
-for the letters above, "mitosis" scores 1, "optimums" 3.  The program only 
-emits puzzles that that it finds have between 26 and 32 points possible, 
-given the words in its list. Typically one is advised to be satisfied to 
-find 20 points' worth, but there is no reason to limit yourself to that.
+that use all seven letters score three points, the rest one.  For example, 
+for the letters above, "mitosis" scores 1, "optimums" 3.  
+
+The program as presented only emits puzzles that that it finds have between 
+26 and 32 points possible, given the words in its list. Typically one is 
+advised to be satisfied to find 20 points' worth, but there is no reason to 
+limit yourself to that.
 
 Output is a list of seven-letter sets, like
 ```
@@ -26,9 +28,9 @@ Output is a list of seven-letter sets, like
 ```
 Capital letters in output are candidates for the central letter.
 
-```solve.sh``` is a much simpler script that, given such a puzzle,
-lists words found in /usr/share/dict/words that solve the puzzle. An
-excerpt from its output for the puzzle above is,
+```solve.sh```, also here, is a much simpler script that, given such a  
+puzzle, lists words found in /usr/share/dict/words that solve the puzzle. 
+An excerpt from its output for the puzzle above is,
 ```
   $ ./solve.sh imopstu
   ...
@@ -45,7 +47,7 @@ in the command-line argument.)
 ### Internals
 
 ```puzzlegen``` is perhaps more interesting as an example of optimized modern
-C++ and Rust coding than as a generator of puzzles.  In C++, it uses bits in
+C++ and Rust coding, than as a generator of puzzles.  In C++, it uses bits in
 a 32-bit word, via bitset<>, to represent sets of letters, bitwise arithmetic
 to step through the set and qualify words, and new-style for-loops over
 containers.  The Rust version does almost precisely the same operations,
