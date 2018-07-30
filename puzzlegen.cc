@@ -17,7 +17,7 @@ extern "C" int main(int argc, char** argv)
     std::vector<int> words; words.reserve(1<<15);
     int word = 0, len = 0, ones = 0;
     for (std::istreambuf_iterator<char> in(file), eof; in != eof; ++in) {
-        if (*in == '\n' || *n == '\r') {
+        if (*in == '\n' || *in == '\r') {
             if (len >= 5 && ones <= 7) {
                 if (ones == 7) pangrams.push_back({word, 0});
                 else words.push_back(word);
