@@ -3,9 +3,9 @@ all possible versions of an anagram puzzle by Frank Longo called "Spelling Bee",
 as found in the Sunday New York Times Magazine.  These puzzles present a 
 circle of six letters ranged around a seventh, central letter, like
 ```
-    M   O
-  P   I   S
-    T   U
+    U   M
+  T   I   O
+    S   P
 ```
 The goal of the puzzle is to find words of five or more letters that use 
 only the letters in the set, and that all use the central letter.  Words 
@@ -42,7 +42,11 @@ An excerpt from its output for the puzzle above is,
   28
 ```
 with three-point words suffixed " *".  (The central letter comes first
-in the command-line argument.)
+in the command-line argument.) A much simpler solution, that does not
+identify three-point words or total points, is simply
+```
+  $ grep i /usr/share/dict/words | grep ..... | grep -v '[^impostu]'
+```
 
 ### Internals
 
