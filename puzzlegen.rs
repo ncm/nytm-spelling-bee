@@ -58,4 +58,4 @@ use std::{fs, io, env, process};
             { stdout.write(&out).unwrap(); }
     }
 }
-#[cfg(not(main))] fn main() { rs_main(); }
+#[cfg(not(main))] fn main() { rs_main(); }  // hook for benchmarking
