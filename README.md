@@ -42,26 +42,30 @@ An excerpt from its output for the puzzle above is,
   28
 ```
 with three-point words suffixed " *".  (The central letter comes first
-in the command-line argument.) A much simpler solution, that does not
-identify three-point words or total points, is simply
+in the command-line argument.)
+
+A much simpler solution is:
 ```
-  $ grep i /usr/share/dict/words | grep ..... | grep -v '[^impostu]'
+  $ grep i /usr/share/dict/words | grep i | grep ..... | grep -v '[^impostu]'
 ```
 
 ### Internals
 
 ```puzzlegen``` is perhaps more interesting as an example of optimized modern
-C++ and Rust coding, than as a generator of puzzles.  In C++, it uses bits in
+C++ and Rust coding than as a generator of puzzles.  In C++, it uses bits in
 a 32-bit word, via bitset<>, to represent sets of letters, bitwise arithmetic
-to step through the set and qualify words, and new-style for-loops over
+to step through the set and qualify words, and C++-style for-loops over
 containers.  The Rust version does almost precisely the same operations,
 but in a functional style that turns out to run a little faster than if
 transcribed straight from the C++, but finally equally as fast as the C++.
 
+A key design criterion was that the program had to fit on one printed
+page. A longer program might be faster, e.g. by using threads, vector
+instructions, or a GPU, but that would dissipate its elegance.
+
 As important is what it doesn't use.  It doesn't store the actual words it
-reads, as they are not useful.  It makes only one pass through all the 
-candidate words for each candidate letter-set.  It discards words on input 
-that cannot be solutions.
+reads.  It makes only one pass through all the candidate words for each 
+candidate letter-set.  It discards words on input that cannot be solutions.
 
 It does depend on a runtime character set with contiguous alphabetic
 characters, and, by default, a ```/usr/share/dict/words``` file in the 
