@@ -46,7 +46,7 @@ in the command-line argument.)
 
 A much simpler solution is:
 ```
-  $ grep i /usr/share/dict/words | grep i | grep ..... | grep -v '[^impostu]'
+  $ grep ..... /usr/share/dict/words | grep i | grep -v '[^impostu]'
 ```
 
 ### Internals
